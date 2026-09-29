@@ -1,2 +1,2 @@
 # ResearchDaily
-Exploration the trending research papers
+Explore the trending research papers
