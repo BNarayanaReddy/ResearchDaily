@@ -1,0 +1,34 @@
+<svg class="rd-svg" viewBox="0 0 680 350" role="img" aria-labelledby="qa-t qa-d" xmlns="http://www.w3.org/2000/svg">
+<title id="qa-t">How QADD trains two pathways in one pass</title>
+<desc id="qa-d">An SFT example: user-turn tokens have ignored labels and are routed through the prefill pathway; assistant tokens have labels and are routed through the decode pathway. The KL loss against a frozen teacher is computed only at positions that predict assistant tokens, including the last prompt position. Gradients reach the prefill weights through that boundary position and through the keys and values that the assistant positions attend to.</desc>
+<defs><marker id="qa-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-take"/></marker></defs>
+<text x="20" y="28" font-size="16" class="t-muted">SFT label</text>
+<text x="20" y="84" font-size="16" class="t-muted">token</text>
+<text x="20" y="140" font-size="16" class="t-muted">pathway</text>
+<g font-size="16" text-anchor="middle">
+<rect x="104" y="58" width="60" height="38" rx="6" class="f-predict soft s-predict"/><text x="134" y="83">What</text>
+<rect x="170" y="58" width="60" height="38" rx="6" class="f-predict soft s-predict"/><text x="200" y="83">is</text>
+<rect x="236" y="58" width="60" height="38" rx="6" class="f-predict soft s-predict"/><text x="266" y="83">2+2</text>
+<rect x="302" y="58" width="60" height="38" rx="6" class="f-predict soft s-predict" stroke-width="2.5"/><text x="332" y="83">?</text>
+<rect x="392" y="58" width="60" height="38" rx="6" class="f-paper soft s-paper"/><text x="422" y="83">It</text>
+<rect x="458" y="58" width="60" height="38" rx="6" class="f-paper soft s-paper"/><text x="488" y="83">is</text>
+<rect x="524" y="58" width="60" height="38" rx="6" class="f-paper soft s-paper"/><text x="554" y="83">4</text>
+<rect x="590" y="58" width="60" height="38" rx="6" class="f-paper soft s-paper"/><text x="620" y="83">.</text>
+<text x="134" y="28" class="t-muted mono">-100</text><text x="200" y="28" class="t-muted mono">-100</text><text x="266" y="28" class="t-muted mono">-100</text><text x="332" y="28" class="t-muted mono">-100</text>
+<text x="422" y="28" class="mono">It</text><text x="488" y="28" class="mono">is</text><text x="554" y="28" class="mono">4</text><text x="620" y="28" class="mono">.</text>
+</g>
+<rect x="104" y="116" width="258" height="36" rx="7" class="f-predict soft s-predict" stroke-width="1.5"/>
+<text x="233" y="140" text-anchor="middle" font-size="16" font-weight="600">prefill weights (W4A4)</text>
+<rect x="392" y="116" width="258" height="36" rx="7" class="f-paper soft s-paper" stroke-width="1.5"/>
+<text x="521" y="140" text-anchor="middle" font-size="16" font-weight="600">decode weights (weight-only)</text>
+<rect x="104" y="176" width="258" height="36" rx="7" class="f-hl soft s-muted"/>
+<text x="233" y="200" text-anchor="middle" font-size="16">prompt keys + values</text>
+<path d="M392,194 L366,194" class="s-muted f-none" stroke-width="1.5"/>
+<text x="521" y="200" text-anchor="middle" font-size="16" class="t-muted">← attended to by every answer token</text>
+<rect x="302" y="236" width="348" height="40" rx="7" class="f-take soft s-take" stroke-width="1.5"/>
+<text x="476" y="262" text-anchor="middle" font-size="16" font-weight="600" class="t-take">KL(teacher ‖ student) on 4 targets</text>
+<path d="M332,236 L332,100" class="s-take f-none" stroke-width="1.5" stroke-dasharray="4 4"/>
+<text x="20" y="306" font-size="16" class="t-take">gradient to prefill: ① the "?" position predicts "It" (the boundary)</text>
+<text x="20" y="330" font-size="16" class="t-take">② the answer's attention reads the prompt's K and V</text>
+<path d="M340,286 C300,300 250,260 233,216" class="s-take f-none" stroke-width="1.8" marker-end="url(#qa-a)"/>
+</svg>

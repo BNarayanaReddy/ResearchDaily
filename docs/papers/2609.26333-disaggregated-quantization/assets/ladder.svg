@@ -1,0 +1,40 @@
+<svg class="rd-svg" viewBox="0 0 680 470" role="img" aria-labelledby="ld-t ld-d" xmlns="http://www.w3.org/2000/svg">
+<title id="ld-t">The disaggregation ladder for one linear layer</title>
+<desc id="ld-d">Three rows. Non-disaggregated: one 2-bit weight is re-quantized to NVFP4 and multiplied with 4-bit activations in both phases. Format-disaggregated: the same single weight, but decode skips the re-quantization and multiplies the 2-bit weight with full-precision activations. Fully-disaggregated: two separately trained weights, a native NVFP4 one for prefill and a 2-bit one for decode.</desc>
+<defs><marker id="ld-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-muted"/></marker></defs>
+<text x="20" y="32" font-size="19" font-weight="650">① Non-disaggregated</text>
+<text x="660" y="32" text-anchor="end" font-size="15" class="t-muted">one weight, one format</text>
+<rect x="20" y="46" width="150" height="96" rx="8" class="f-surface s-muted" stroke-width="1.5"/>
+<text x="95" y="90" text-anchor="middle" font-size="18" class="mono">W</text>
+<text x="95" y="116" text-anchor="middle" font-size="15" class="t-muted">2-bit LUT</text>
+<path d="M170,72 L236,72" class="s-muted f-none" stroke-width="1.5" marker-end="url(#ld-a)"/>
+<path d="M170,118 L236,118" class="s-muted f-none" stroke-width="1.5" marker-end="url(#ld-a)"/>
+<rect x="240" y="50" width="420" height="42" rx="7" class="f-predict soft s-predict" stroke-width="1.2"/>
+<text x="254" y="77" font-size="16"><tspan font-weight="600">prefill</tspan> · re-quantize W → NVFP4 · 4-bit acts</text>
+<rect x="240" y="98" width="420" height="42" rx="7" class="f-predict soft s-predict" stroke-width="1.2"/>
+<text x="254" y="125" font-size="16"><tspan font-weight="600">decode</tspan> · same NVFP4 path · 4-bit acts</text>
+<text x="20" y="184" font-size="19" font-weight="650">② Format-disaggregated</text>
+<text x="660" y="184" text-anchor="end" font-size="15" class="t-muted">one weight, two formats</text>
+<rect x="20" y="198" width="150" height="96" rx="8" class="f-surface s-muted" stroke-width="1.5"/>
+<text x="95" y="242" text-anchor="middle" font-size="18" class="mono">W</text>
+<text x="95" y="268" text-anchor="middle" font-size="15" class="t-muted">2-bit LUT</text>
+<path d="M170,224 L236,224" class="s-muted f-none" stroke-width="1.5" marker-end="url(#ld-a)"/>
+<path d="M170,270 L236,270" class="s-muted f-none" stroke-width="1.5" marker-end="url(#ld-a)"/>
+<rect x="240" y="202" width="420" height="42" rx="7" class="f-predict soft s-predict" stroke-width="1.2"/>
+<text x="254" y="229" font-size="16"><tspan font-weight="600">prefill</tspan> · re-quantize W → NVFP4 · 4-bit acts</text>
+<rect x="240" y="250" width="420" height="42" rx="7" class="f-paper soft s-paper" stroke-width="2"/>
+<text x="254" y="277" font-size="16"><tspan font-weight="600">decode</tspan> · 2-bit W × BF16 acts (weight-only)</text>
+<text x="20" y="336" font-size="19" font-weight="650">③ Fully-disaggregated</text>
+<text x="660" y="336" text-anchor="end" font-size="15" class="t-muted">two weights, two formats</text>
+<rect x="20" y="350" width="150" height="44" rx="8" class="f-take soft s-take" stroke-width="1.5"/>
+<text x="95" y="378" text-anchor="middle" font-size="17" class="mono">W_p · NVFP4</text>
+<rect x="20" y="400" width="150" height="44" rx="8" class="f-surface s-muted" stroke-width="1.5"/>
+<text x="95" y="428" text-anchor="middle" font-size="17" class="mono">W_d · 2-bit</text>
+<path d="M170,374 L236,374" class="s-muted f-none" stroke-width="1.5" marker-end="url(#ld-a)"/>
+<path d="M170,422 L236,422" class="s-muted f-none" stroke-width="1.5" marker-end="url(#ld-a)"/>
+<rect x="240" y="354" width="420" height="42" rx="7" class="f-predict soft s-predict" stroke-width="2"/>
+<text x="254" y="381" font-size="16"><tspan font-weight="600">prefill</tspan> · its own native NVFP4 W_p · 4-bit acts</text>
+<rect x="240" y="402" width="420" height="42" rx="7" class="f-paper soft s-paper" stroke-width="2"/>
+<text x="254" y="429" font-size="16"><tspan font-weight="600">decode</tspan> · 2-bit W_d × BF16 acts (weight-only)</text>
+<text x="340" y="464" text-anchor="middle" font-size="15" class="t-muted">amber = fast 4-bit compute · blue = small weight-only decode</text>
+</svg>

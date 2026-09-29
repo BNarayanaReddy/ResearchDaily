@@ -1,0 +1,28 @@
+<svg class="rd-svg" viewBox="0 0 680 330" role="img" aria-labelledby="in-t in-d" xmlns="http://www.w3.org/2000/svg">
+<title id="in-t">Why decode is memory-bound and prefill is compute-bound</title>
+<desc id="in-d">One 4096 by 4096 linear layer in BF16. At decode, one token: 33.6 megabytes of weights moved for 33.6 million floating-point operations, about 1 operation per byte. At prefill with 16,384 tokens: about 302 megabytes moved for 550 billion operations, about 1,800 operations per byte.</desc>
+<text x="170" y="30" text-anchor="middle" font-size="20" font-weight="650" class="t-paper">Decode · T = 1</text>
+<text x="510" y="30" text-anchor="middle" font-size="20" font-weight="650" class="t-predict">Prefill · T = 16,384</text>
+<text x="30" y="72" font-size="17" class="t-muted">bytes moved</text>
+<rect x="30" y="82" width="30" height="26" class="f-paper s-paper" stroke-width="1"/>
+<text x="70" y="102" font-size="17">33.6 MB (weights)</text>
+<text x="30" y="148" font-size="17" class="t-muted">math done</text>
+<rect x="30" y="158" width="4" height="26" class="f-paper"/>
+<text x="44" y="178" font-size="17">33.6 MFLOP</text>
+<rect x="24" y="210" width="292" height="92" rx="9" class="f-paper soft s-paper" stroke-width="1.5"/>
+<text x="170" y="244" text-anchor="middle" font-size="19" font-weight="600">≈ 1 FLOP per byte</text>
+<text x="170" y="272" text-anchor="middle" font-size="16" class="t-muted">compute units wait on memory:</text>
+<text x="170" y="292" text-anchor="middle" font-size="16" class="t-muted">shrink the weights</text>
+<text x="370" y="72" font-size="17" class="t-muted">bytes moved</text>
+<rect x="370" y="82" width="30" height="26" class="f-paper s-paper" stroke-width="1"/>
+<rect x="400" y="82" width="240" height="26" class="f-predict soft s-predict" stroke-width="1"/>
+<text x="408" y="102" font-size="15">+ 268 MB activations (bars to scale)</text>
+<text x="370" y="148" font-size="17" class="t-muted">math done</text>
+<rect x="370" y="158" width="290" height="26" class="f-predict s-predict" stroke-width="1"/>
+<text x="516" y="178" text-anchor="middle" font-size="17" class="f-bg" font-weight="600">550 GFLOP (16,384×)</text>
+<rect x="364" y="210" width="292" height="92" rx="9" class="f-predict soft s-predict" stroke-width="1.5"/>
+<text x="510" y="244" text-anchor="middle" font-size="19" font-weight="600">≈ 1,800 FLOP per byte</text>
+<text x="510" y="272" text-anchor="middle" font-size="16" class="t-muted">memory waits on compute:</text>
+<text x="510" y="292" text-anchor="middle" font-size="16" class="t-muted">use faster (lower-precision) math</text>
+<line x1="340" y1="14" x2="340" y2="310" class="s-faint" stroke-width="1"/>
+</svg>

@@ -1,0 +1,33 @@
+<svg class="rd-svg" viewBox="0 0 680 450" role="img" aria-labelledby="op-t op-d" xmlns="http://www.w3.org/2000/svg">
+<title id="op-t">Disaggregated quantization in one picture</title>
+<desc id="op-d">The prompt is processed by a separate prefill copy of the weights in 4-bit NVFP4 with 4-bit activations, streamed block by block from SSD. It writes a KV cache of the original shape. A 2-bit weight-only decode copy, resident on the GPU, reads that cache and writes the answer one token at a time. Both copies are trained together: the loss is on answer tokens only, and its gradient flows back through the KV cache into the prefill weights.</desc>
+<defs><marker id="op-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-muted"/></marker><marker id="op-av" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-take"/></marker></defs>
+<rect x="14" y="14" width="316" height="240" rx="12" class="f-predict softer s-predict" stroke-width="1.5"/>
+<text x="172" y="44" text-anchor="middle" font-size="20" font-weight="650" class="t-predict">PREFILL: read the prompt</text>
+<text x="172" y="70" text-anchor="middle" font-size="16" class="t-muted">thousands of tokens at once</text>
+<text x="172" y="90" text-anchor="middle" font-size="16" class="t-muted">→ compute-bound</text>
+<rect x="36" y="104" width="272" height="132" rx="9" class="f-surface s-predict" stroke-width="2"/>
+<text x="172" y="134" text-anchor="middle" font-size="19" font-weight="600">Prefill weights</text>
+<text x="172" y="160" text-anchor="middle" font-size="17">NVFP4 · W4A4</text>
+<text x="172" y="184" text-anchor="middle" font-size="16" class="t-muted">native 4-bit matmuls</text>
+<text x="172" y="212" text-anchor="middle" font-size="16" class="t-predict">streamed from SSD (ODP)</text>
+<rect x="350" y="14" width="316" height="240" rx="12" class="f-paper softer s-paper" stroke-width="1.5"/>
+<text x="508" y="44" text-anchor="middle" font-size="20" font-weight="650" class="t-paper">DECODE: write the answer</text>
+<text x="508" y="70" text-anchor="middle" font-size="16" class="t-muted">one token per step</text>
+<text x="508" y="90" text-anchor="middle" font-size="16" class="t-muted">→ memory-bound</text>
+<rect x="372" y="104" width="272" height="132" rx="9" class="f-surface s-paper" stroke-width="2"/>
+<text x="508" y="134" text-anchor="middle" font-size="19" font-weight="600">Decode weights</text>
+<text x="508" y="160" text-anchor="middle" font-size="17">2-bit LUT · weight-only</text>
+<text x="508" y="184" text-anchor="middle" font-size="16" class="t-muted">activations stay BF16</text>
+<text x="508" y="212" text-anchor="middle" font-size="16" class="t-paper">resident on the GPU</text>
+<rect x="190" y="282" width="300" height="62" rx="9" class="f-hl soft s-muted" stroke-width="1.5"/>
+<text x="340" y="308" text-anchor="middle" font-size="19" font-weight="600">KV cache</text>
+<text x="340" y="332" text-anchor="middle" font-size="16" class="t-muted">same shape as the original model</text>
+<path d="M172,236 L172,312 L186,312" class="s-muted f-none" stroke-width="1.8" marker-end="url(#op-a)"/>
+<text x="112" y="290" text-anchor="middle" font-size="16" class="t-muted">writes</text>
+<path d="M494,312 L508,312 L508,240" class="s-muted f-none" stroke-width="1.8" marker-end="url(#op-a)"/>
+<text x="570" y="290" text-anchor="middle" font-size="16" class="t-muted">reads</text>
+<path d="M600,250 C630,400 50,400 40,258" class="s-take f-none" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#op-av)"/>
+<text x="340" y="404" text-anchor="middle" font-size="17" class="t-take">QADD: loss on answer tokens only;</text>
+<text x="340" y="428" text-anchor="middle" font-size="17" class="t-take">the gradient reaches the prefill weights through the cache</text>
+</svg>

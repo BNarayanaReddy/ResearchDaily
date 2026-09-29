@@ -1,0 +1,21 @@
+<svg class="rd-svg" viewBox="0 0 680 440" role="img" aria-labelledby="ln-t ln-d" xmlns="http://www.w3.org/2000/svg">
+<title id="ln-t">Lineage of disaggregated quantization</title>
+<desc id="ln-d">A vertical timeline: 2018 quantization with distillation; 2023 to 2024 extreme weight-only encodings such as GPTQ, AQLM and QuIP sharp; 2023 FlexGen weight offloading; 2024 to 2025 disaggregated serving that splits prefill and decode across machines; 2025 to 2026 NVFP4 microscaling FP4 and quantization-aware distillation for it; 2025 to 2026 phase-aware precision work; 2026 disaggregated quantization, which joins them.</desc>
+<line x1="120" y1="30" x2="120" y2="400" class="s-faint" stroke-width="3"/>
+<g font-size="16">
+<circle cx="120" cy="40" r="8" class="f-muted"/><text x="100" y="46" text-anchor="end" class="t-muted">2018</text>
+<text x="142" y="38" font-weight="600">Quantization + distillation</text><text x="142" y="58" class="t-muted">Polino et al.: a teacher guides the quantized student</text>
+<circle cx="120" cy="96" r="8" class="f-muted"/><text x="100" y="102" text-anchor="end" class="t-muted">2023–24</text>
+<text x="142" y="94" font-weight="600">Extreme weight-only encodings</text><text x="142" y="114" class="t-muted">GPTQ, AQLM, QuIP#: 2–3-bit weights for decode</text>
+<circle cx="120" cy="152" r="8" class="f-muted"/><text x="100" y="158" text-anchor="end" class="t-muted">2023</text>
+<text x="142" y="150" font-weight="600">FlexGen</text><text x="142" y="170" class="t-muted">offload weights, amortize loading over big batches</text>
+<circle cx="120" cy="208" r="8" class="f-paper"/><text x="100" y="214" text-anchor="end" class="t-muted">2024–25</text>
+<text x="142" y="206" font-weight="600">Disaggregated serving</text><text x="142" y="226" class="t-muted">TetriInfer, Mooncake: prefill and decode on separate GPUs</text>
+<circle cx="120" cy="264" r="8" class="f-predict"/><text x="100" y="270" text-anchor="end" class="t-muted">2025–26</text>
+<text x="142" y="262" font-weight="600">NVFP4 in practice + QAD for NVFP4</text><text x="142" y="282" class="t-muted">4-bit float compute that actually keeps accuracy</text>
+<circle cx="120" cy="320" r="8" class="f-predict"/><text x="100" y="326" text-anchor="end" class="t-muted">2025–26</text>
+<text x="142" y="318" font-weight="600">Phase-aware precision</text><text x="142" y="338" class="t-muted">mixed precision per phase (Chen 2025a; Mix-quant)</text>
+<circle cx="120" cy="384" r="11" class="f-take"/><text x="100" y="390" text-anchor="end" font-weight="650" class="t-take">2026</text>
+<text x="142" y="382" font-weight="650" class="t-take">Disaggregated quantization</text><text x="142" y="404" class="t-take">formats, weights and storage per phase, trained jointly</text>
+</g>
+</svg>

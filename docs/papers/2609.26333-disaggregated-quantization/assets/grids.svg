@@ -1,0 +1,71 @@
+<svg class="rd-svg" viewBox="0 0 680 370" role="img" aria-labelledby="gr-t gr-d" xmlns="http://www.w3.org/2000/svg">
+<title id="gr-t">The three quantization grids</title>
+<desc id="gr-d">Number lines from minus 6 to plus 6. NVFP4 has 15 symmetric values, dense near zero. LUT3 has 8 asymmetric values including 0 and plus 6. LUT2 has only 4: minus 3.65, 0, 2.52 and 6. In the LUT grids the block scale absorbs the sign so the block maximum always lands on plus 6.</desc>
+<text x="20" y="44" font-size="18" font-weight="600" class="t-paper">NVFP4 (E2M1), 4 bits</text>
+<text x="660" y="44" text-anchor="end" font-size="16" class="t-muted">15 values, symmetric</text>
+<line x1="70.0" y1="78" x2="630.0" y2="78" class="s-faint" stroke-width="1.5"/>
+<line x1="70.0" y1="84" x2="70.0" y2="90" class="s-muted" stroke-width="1"/>
+<text x="70.0" y="110" text-anchor="middle" font-size="16" class="t-muted">-6</text>
+<line x1="210.0" y1="84" x2="210.0" y2="90" class="s-muted" stroke-width="1"/>
+<text x="210.0" y="110" text-anchor="middle" font-size="16" class="t-muted">-3</text>
+<line x1="350.0" y1="84" x2="350.0" y2="90" class="s-muted" stroke-width="1"/>
+<text x="350.0" y="110" text-anchor="middle" font-size="16" class="t-muted">0</text>
+<line x1="490.0" y1="84" x2="490.0" y2="90" class="s-muted" stroke-width="1"/>
+<text x="490.0" y="110" text-anchor="middle" font-size="16" class="t-muted">+3</text>
+<line x1="630.0" y1="84" x2="630.0" y2="90" class="s-muted" stroke-width="1"/>
+<text x="630.0" y="110" text-anchor="middle" font-size="16" class="t-muted">+6</text>
+<circle cx="70.0" cy="78" r="6.5" class="f-paper"/>
+<circle cx="163.3" cy="78" r="6.5" class="f-paper"/>
+<circle cx="210.0" cy="78" r="6.5" class="f-paper"/>
+<circle cx="256.7" cy="78" r="6.5" class="f-paper"/>
+<circle cx="280.0" cy="78" r="6.5" class="f-paper"/>
+<circle cx="303.3" cy="78" r="6.5" class="f-paper"/>
+<circle cx="326.7" cy="78" r="6.5" class="f-paper"/>
+<circle cx="350.0" cy="78" r="6.5" class="f-paper"/>
+<circle cx="373.3" cy="78" r="6.5" class="f-paper"/>
+<circle cx="396.7" cy="78" r="6.5" class="f-paper"/>
+<circle cx="420.0" cy="78" r="6.5" class="f-paper"/>
+<circle cx="443.3" cy="78" r="6.5" class="f-paper"/>
+<circle cx="490.0" cy="78" r="6.5" class="f-paper"/>
+<circle cx="536.7" cy="78" r="6.5" class="f-paper"/>
+<circle cx="630.0" cy="78" r="6.5" class="f-paper"/>
+<text x="20" y="149" font-size="18" font-weight="600" class="t-take">LUT3, 3 bits</text>
+<text x="660" y="149" text-anchor="end" font-size="16" class="t-muted">8 values, asymmetric</text>
+<line x1="70.0" y1="183" x2="630.0" y2="183" class="s-faint" stroke-width="1.5"/>
+<line x1="70.0" y1="189" x2="70.0" y2="195" class="s-muted" stroke-width="1"/>
+<text x="70.0" y="215" text-anchor="middle" font-size="16" class="t-muted">-6</text>
+<line x1="210.0" y1="189" x2="210.0" y2="195" class="s-muted" stroke-width="1"/>
+<text x="210.0" y="215" text-anchor="middle" font-size="16" class="t-muted">-3</text>
+<line x1="350.0" y1="189" x2="350.0" y2="195" class="s-muted" stroke-width="1"/>
+<text x="350.0" y="215" text-anchor="middle" font-size="16" class="t-muted">0</text>
+<line x1="490.0" y1="189" x2="490.0" y2="195" class="s-muted" stroke-width="1"/>
+<text x="490.0" y="215" text-anchor="middle" font-size="16" class="t-muted">+3</text>
+<line x1="630.0" y1="189" x2="630.0" y2="195" class="s-muted" stroke-width="1"/>
+<text x="630.0" y="215" text-anchor="middle" font-size="16" class="t-muted">+6</text>
+<circle cx="130.5" cy="183" r="6.5" class="f-take"/>
+<circle cx="216.1" cy="183" r="6.5" class="f-take"/>
+<circle cx="286.1" cy="183" r="6.5" class="f-take"/>
+<circle cx="350.0" cy="183" r="6.5" class="f-take"/>
+<circle cx="407.0" cy="183" r="6.5" class="f-take"/>
+<circle cx="468.0" cy="183" r="6.5" class="f-take"/>
+<circle cx="538.9" cy="183" r="6.5" class="f-take"/>
+<circle cx="630.0" cy="183" r="6.5" class="f-take"/>
+<text x="20" y="254" font-size="18" font-weight="600" class="t-predict">LUT2, 2 bits</text>
+<text x="660" y="254" text-anchor="end" font-size="16" class="t-muted">4 values, asymmetric</text>
+<line x1="70.0" y1="288" x2="630.0" y2="288" class="s-faint" stroke-width="1.5"/>
+<line x1="70.0" y1="294" x2="70.0" y2="300" class="s-muted" stroke-width="1"/>
+<text x="70.0" y="320" text-anchor="middle" font-size="16" class="t-muted">-6</text>
+<line x1="210.0" y1="294" x2="210.0" y2="300" class="s-muted" stroke-width="1"/>
+<text x="210.0" y="320" text-anchor="middle" font-size="16" class="t-muted">-3</text>
+<line x1="350.0" y1="294" x2="350.0" y2="300" class="s-muted" stroke-width="1"/>
+<text x="350.0" y="320" text-anchor="middle" font-size="16" class="t-muted">0</text>
+<line x1="490.0" y1="294" x2="490.0" y2="300" class="s-muted" stroke-width="1"/>
+<text x="490.0" y="320" text-anchor="middle" font-size="16" class="t-muted">+3</text>
+<line x1="630.0" y1="294" x2="630.0" y2="300" class="s-muted" stroke-width="1"/>
+<text x="630.0" y="320" text-anchor="middle" font-size="16" class="t-muted">+6</text>
+<circle cx="179.6" cy="288" r="6.5" class="f-predict"/>
+<circle cx="350.0" cy="288" r="6.5" class="f-predict"/>
+<circle cx="467.7" cy="288" r="6.5" class="f-predict"/>
+<circle cx="630.0" cy="288" r="6.5" class="f-predict"/>
+<text x="630.0" y="272" text-anchor="middle" font-size="15" class="t-predict">block max</text>
+</svg>
