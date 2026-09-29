@@ -1,0 +1,21 @@
+<svg class="rd-svg" viewBox="0 0 680 400" role="img" aria-labelledby="sc-t sc-d" xmlns="http://www.w3.org/2000/svg">
+<title id="sc-t">Where the evidence lives</title>
+<desc id="sc-d">Horizontal axis: how familiar the repository is to the model, from private to famous. Vertical axis: how rich the agent's tools are, from bash only to IDE and language server. The paper's evidence covers famous public Python repositories with bash-only agents, plus one small post-cutoff probe on SWE-rebench. Private repositories, other languages, and IDE or language-server tools are untested.</desc>
+<defs><marker id="sc-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-muted"/></marker></defs>
+<line x1="80" y1="340" x2="660" y2="340" class="s-muted" stroke-width="1.5" marker-end="url(#sc-a)"/>
+<line x1="80" y1="340" x2="80" y2="20" class="s-muted" stroke-width="1.5" marker-end="url(#sc-a)"/>
+<text x="370" y="376" text-anchor="middle" font-size="17">how familiar the repo is to the model →</text>
+<text x="96" y="362" font-size="15" class="t-muted">private</text><text x="600" y="362" font-size="15" class="t-muted">famous</text>
+<text x="30" y="190" font-size="17" text-anchor="middle" transform="rotate(-90 30 190)">agent tools →</text>
+<text x="88" y="330" font-size="15" class="t-muted">bash only</text><text x="88" y="44" font-size="15" class="t-muted">IDE / LSP / AST</text>
+<rect x="420" y="240" width="230" height="92" rx="8" class="f-paper soft s-paper" stroke-width="1.5"/>
+<text x="535" y="268" text-anchor="middle" font-size="16" font-weight="600">tested (§V-A–C)</text>
+<text x="535" y="292" text-anchor="middle" font-size="15">SWE-bench Verified,</text>
+<text x="535" y="314" text-anchor="middle" font-size="15">SWE-QA, Python</text>
+<rect x="250" y="262" width="150" height="70" rx="8" class="f-take soft s-take" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="325" y="290" text-anchor="middle" font-size="15" font-weight="600">1 model, 110 tasks</text>
+<text x="325" y="312" text-anchor="middle" font-size="15">SWE-rebench (§V-D)</text>
+<rect x="100" y="60" width="550" height="150" rx="8" class="f-faint softer s-faint" stroke-dasharray="4 4"/>
+<text x="375" y="120" text-anchor="middle" font-size="17" class="t-muted">untested: IDE/LSP tools (§VI),</text>
+<text x="375" y="146" text-anchor="middle" font-size="17" class="t-muted">non-Python repos, private codebases</text>
+</svg>

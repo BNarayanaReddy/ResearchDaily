@@ -1,0 +1,17 @@
+<svg class="rd-svg" viewBox="0 0 680 330" role="img" aria-labelledby="ln-t ln-d" xmlns="http://www.w3.org/2000/svg">
+<title id="ln-t">Lineage of SchrodingerRepo</title>
+<desc id="ln-d">Two lines of work converge. Fresh tasks: SWE-bench 2023, SWE-rebench and SWE-bench Live 2025. Agents and memorization probes: SWE-agent scaffold 2024, SWE-bench Illusion 2025 showing models recall file locations, RepoMirage 2026 with static perturbations. SchrodingerRepo 2026 combines them with seeded views at evaluation time.</desc>
+<defs><marker id="ln-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-muted"/></marker></defs>
+<line x1="20" y1="300" x2="660" y2="300" class="s-muted" stroke-width="1.5" marker-end="url(#ln-a)"/>
+<g font-size="16" class="t-muted" text-anchor="middle"><text x="80" y="322">2023</text><text x="230" y="322">2024</text><text x="380" y="322">2025</text><text x="560" y="322">2026</text></g>
+<text x="20" y="28" font-size="16" font-weight="600" class="t-paper">benchmarks &amp; fresh tasks</text>
+<rect x="10" y="40" width="140" height="58" rx="8" class="f-paper soft s-paper"/><text x="80" y="64" text-anchor="middle" font-size="16" font-weight="600">SWE-bench</text><text x="80" y="86" text-anchor="middle" font-size="14">real issues as tasks</text>
+<rect x="300" y="40" width="165" height="58" rx="8" class="f-paper soft s-paper"/><text x="382" y="64" text-anchor="middle" font-size="16" font-weight="600">SWE-rebench, Live</text><text x="382" y="86" text-anchor="middle" font-size="14">post-cutoff tasks</text>
+<text x="20" y="140" font-size="16" font-weight="600" class="t-predict">agents and memorization probes</text>
+<rect x="160" y="152" width="140" height="58" rx="8" class="f-surface s-faint"/><text x="230" y="176" text-anchor="middle" font-size="16" font-weight="600">SWE-agent</text><text x="230" y="198" text-anchor="middle" font-size="14">bash-only scaffold</text>
+<rect x="310" y="152" width="150" height="58" rx="8" class="f-predict soft s-predict"/><text x="385" y="176" text-anchor="middle" font-size="15" font-weight="600">SWE-bench Illusion</text><text x="385" y="198" text-anchor="middle" font-size="14">recalls file locations</text>
+<rect x="470" y="152" width="120" height="58" rx="8" class="f-predict soft s-predict"/><text x="530" y="176" text-anchor="middle" font-size="16" font-weight="600">RepoMirage</text><text x="530" y="198" text-anchor="middle" font-size="14">static perturbs</text>
+<rect x="490" y="230" width="180" height="58" rx="8" class="f-take soft s-take" stroke-width="2"/><text x="580" y="254" text-anchor="middle" font-size="16" font-weight="600">SchrodingerRepo</text><text x="580" y="276" text-anchor="middle" font-size="14">seeded views at eval time</text>
+<path d="M465,70 C640,70 640,150 620,228" class="s-muted f-none" stroke-width="1.5" marker-end="url(#ln-a)"/>
+<line x1="545" y1="210" x2="565" y2="228" class="s-muted" stroke-width="1.5" marker-end="url(#ln-a)"/>
+</svg>

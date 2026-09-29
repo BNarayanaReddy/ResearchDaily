@@ -1,0 +1,29 @@
+<svg class="rd-svg" viewBox="0 0 680 400" role="img" aria-labelledby="lk-t lk-d" xmlns="http://www.w3.org/2000/svg">
+<title id="lk-t">How much of SWE-bench Verified each model recalls before seeing the repo</title>
+<desc id="lk-d">Stacked bars out of 500 instances. No valid recall: DeepSeek-v4-Flash 171, GPT 5.1 152, GPT-5.4-mini 139, Gemini-3.1-Flash-Lite 124. File or symbol recall: 182, 256, 268, 197. Repair-logic recall: 1, 2, 0, 40. Patch or test recall: 146, 90, 93, 139.</desc>
+<!-- numbers read from Fig. 1 of arXiv:2609.27891v1 (bar labels) -->
+<g font-size="17">
+<text x="10" y="30" font-size="18" font-weight="600">Recall before touching the repo (of 500 instances)</text>
+<text x="10" y="80">DeepSeek-v4</text><text x="10" y="150">GPT 5.1</text><text x="10" y="220">GPT-5.4-mini</text><text x="10" y="290">Gemini-3.1-FL</text>
+</g>
+<!-- scale: 500 instances -> 520 px starting at x=140; 1 inst = 1.04 px -->
+<g>
+<rect x="140" y="58" width="177.8" height="34" class="f-faint"/><rect x="317.8" y="58" width="189.3" height="34" class="f-paper" fill-opacity=".45"/><rect x="507.1" y="58" width="1.0" height="34" class="f-take"/><rect x="508.1" y="58" width="151.9" height="34" class="f-predict"/>
+<rect x="140" y="128" width="158.1" height="34" class="f-faint"/><rect x="298.1" y="128" width="266.2" height="34" class="f-paper" fill-opacity=".45"/><rect x="564.3" y="128" width="2.1" height="34" class="f-take"/><rect x="566.4" y="128" width="93.6" height="34" class="f-predict"/>
+<rect x="140" y="198" width="144.6" height="34" class="f-faint"/><rect x="284.6" y="198" width="278.7" height="34" class="f-paper" fill-opacity=".45"/><rect x="563.3" y="198" width="96.7" height="34" class="f-predict"/>
+<rect x="140" y="268" width="129.0" height="34" class="f-faint"/><rect x="269.0" y="268" width="204.9" height="34" class="f-paper" fill-opacity=".45"/><rect x="473.9" y="268" width="41.6" height="34" class="f-take"/><rect x="515.5" y="268" width="144.5" height="34" class="f-predict"/>
+</g>
+<g font-size="16" text-anchor="middle">
+<text x="229" y="81">171</text><text x="412" y="81">182</text><text x="584" y="81">146</text>
+<text x="219" y="151">152</text><text x="431" y="151">256</text><text x="613" y="151">90</text>
+<text x="212" y="221">139</text><text x="424" y="221">268</text><text x="612" y="221">93</text>
+<text x="204" y="291">124</text><text x="371" y="291">197</text><text x="495" y="291">40</text><text x="588" y="291">139</text>
+</g>
+<g font-size="16">
+<rect x="10" y="330" width="18" height="18" class="f-faint"/><text x="34" y="345">no valid recall</text>
+<rect x="180" y="330" width="18" height="18" class="f-paper" fill-opacity=".45"/><text x="204" y="345">file / symbol</text>
+<rect x="340" y="330" width="18" height="18" class="f-take"/><text x="364" y="345">repair logic</text>
+<rect x="490" y="330" width="18" height="18" class="f-predict"/><text x="514" y="345">patch / test</text>
+<text x="10" y="382" class="t-muted" font-size="15">Repair-logic slivers for DeepSeek (1) and GPT 5.1 (2) are too thin to see.</text>
+</g>
+</svg>

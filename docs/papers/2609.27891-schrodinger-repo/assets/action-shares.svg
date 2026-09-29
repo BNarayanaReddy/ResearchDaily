@@ -1,0 +1,30 @@
+<svg class="rd-svg" viewBox="0 0 680 300" role="img" aria-labelledby="as-t as-d" xmlns="http://www.w3.org/2000/svg">
+<title id="as-t">Where the extra actions go under the full transformation</title>
+<desc id="as-d">Share of additional actions over baseline. DeepSeek-v4-Flash: probe 31.4 percent, read 19.4, search 17.9, navigate 15.0, edit 15.5, test 1.0. GPT-5.4-mini: read 41.8, search 33.1, probe 3.7, navigate 3.0, edit 18.5. Exploration categories take 83.6 and 81.6 percent.</desc>
+<!-- numbers read from Fig. 3 of arXiv:2609.27891v1; totals 83.6 / 81.6 from §V-B -->
+<text x="20" y="30" font-size="18" font-weight="600">Share of the EXTRA actions (full SchrodingerRepo)</text>
+<text x="20" y="80" font-size="17">DeepSeek</text><text x="20" y="160" font-size="17">GPT-5.4-mini</text>
+<!-- scale 100% = 500px from x=150 -->
+<g>
+<rect x="150" y="58" width="75" height="34" class="f-paper" fill-opacity=".35"/>
+<rect x="225" y="58" width="89.5" height="34" class="f-paper" fill-opacity=".55"/>
+<rect x="314.5" y="58" width="97" height="34" class="f-paper" fill-opacity=".75"/>
+<rect x="411.5" y="58" width="157" height="34" class="f-paper"/>
+<rect x="568.5" y="58" width="77.5" height="34" class="f-code"/>
+<rect x="646" y="58" width="5" height="34" class="f-take"/>
+<rect x="150" y="138" width="15" height="34" class="f-paper" fill-opacity=".35"/>
+<rect x="165" y="138" width="165.5" height="34" class="f-paper" fill-opacity=".55"/>
+<rect x="330.5" y="138" width="209" height="34" class="f-paper" fill-opacity=".75"/>
+<rect x="539.5" y="138" width="18.5" height="34" class="f-paper"/>
+<rect x="558" y="138" width="92.5" height="34" class="f-code"/>
+</g>
+<g font-size="15" text-anchor="middle">
+<text x="187" y="112">nav 15.0</text><text x="270" y="112">search 17.9</text><text x="363" y="112">read 19.4</text><text x="490" y="112">probe 31.4</text><text x="607" y="112">edit 15.5</text>
+<text x="247" y="192">search 33.1</text><text x="435" y="192">read 41.8</text><text x="604" y="192">edit 18.5</text>
+<text x="160" y="212" text-anchor="start" class="t-muted">nav 3.0 · probe 3.7</text>
+</g>
+<line x1="150" y1="228" x2="150" y2="240" class="s-muted"/><line x1="568.5" y1="228" x2="568.5" y2="240" class="s-muted"/>
+<line x1="150" y1="234" x2="568.5" y2="234" class="s-paper" stroke-width="2"/>
+<text x="359" y="260" font-size="16" text-anchor="middle" class="t-paper">exploration: 83.6% (DeepSeek) · 81.6% (GPT-5.4-mini)</text>
+<text x="20" y="288" font-size="15" class="t-muted">Blue = exploring (navigate, search, read, probe) · green = edit · violet sliver = test (1.0%)</text>
+</svg>

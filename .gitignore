@@ -1,0 +1,7 @@
+# Build output and local working files (never published)
+site/
+_notes/
+_check/
+__pycache__/
+.cache/
+.DS_Store

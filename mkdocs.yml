@@ -1,0 +1,152 @@
+# Research Daily — MkDocs Material configuration.
+# Placeholders in {{DOUBLE_BRACES}} are filled by scripts/scaffold_site.py.
+# Verified against mkdocs 1.6.1 / mkdocs-material 9.7.7 / pymdown-extensions 12.1.
+
+site_name: "Research Daily"
+site_url: "https://bnarayanareddy.github.io/ResearchDaily/"
+site_description: "Research papers, explained from first principles, with pictures, arguments, and a quiz at the end."
+site_author: "B Narayana Reddy"
+repo_url: "https://github.com/BNarayanaReddy/ResearchDaily"
+repo_name: "BNarayanaReddy/ResearchDaily"
+edit_uri: "edit/main/docs/"
+copyright: >-
+  Written and curated by B Narayana Reddy.
+  Paper figures belong to their authors; every visual on this site is drawn fresh.
+
+theme:
+  name: material
+  language: en
+  font:
+    text: Literata
+    code: JetBrains Mono
+  icon:
+    logo: material/book-open-page-variant
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Follow system theme
+  features:
+    - navigation.tabs
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.tooltips
+
+hooks:
+  - hooks/research_daily.py
+
+plugins:
+  - search
+  - tags:
+      # The controlled tag list. The build FAILS on any tag not listed here,
+      # which keeps tags consistent across papers. Add new tags deliberately.
+      tags_allowed:
+        - Speech
+        - ASR
+        - TTS
+        - Audio
+        - Self-supervised
+        - Weak supervision
+        - Multilingual
+        - LLMs
+        - Language modeling
+        - Scaling laws
+        - Transformers
+        - Vision
+        - Multimodal
+        - Generative models
+        - Diffusion
+        - Image generation
+        - Reinforcement learning
+        - RLHF
+        - Alignment
+        - Agents
+        - Reasoning
+        - Efficiency
+        - Fine-tuning
+        - Optimization
+        - Theory
+        - Interpretability
+        - Robustness
+        - Datasets
+        - Benchmarks
+        - Evaluation
+        - Systems
+        - Code
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.snippets:
+      base_path: [docs]
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+extra_javascript:
+  - assets/javascripts/mathjax-config.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js
+  - assets/javascripts/site.js
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: "https://github.com/BNarayanaReddy/ResearchDaily"

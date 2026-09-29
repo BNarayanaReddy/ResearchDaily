@@ -1,0 +1,26 @@
+<svg class="rd-svg" viewBox="0 0 680 330" role="img" aria-labelledby="l3-t l3-d" xmlns="http://www.w3.org/2000/svg">
+<title id="l3-t">Level 3 reorders definitions without breaking import-time dependencies</title>
+<desc id="l3-d">A file defines make_label, Field, CharField which subclasses Field, and a decorator registered used by CharField. Arrows show definition-time dependencies: Field must come before CharField and registered must come before CharField. A random topological sort picks any order that respects the arrows, for example registered, make_label, Field, CharField, or make_label, registered, Field, CharField. An order with CharField before Field is not allowed.</desc>
+<defs><marker id="l3-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-muted"/></marker></defs>
+<text x="20" y="30" font-size="18" font-weight="600">Dependency graph G (one reorderable run)</text>
+<g font-size="17" class="mono">
+<rect x="20" y="50" width="150" height="40" rx="7" class="f-surface s-faint"/><text x="95" y="76" text-anchor="middle">make_label</text>
+<rect x="20" y="120" width="150" height="40" rx="7" class="f-paper soft s-paper"/><text x="95" y="146" text-anchor="middle">Field</text>
+<rect x="250" y="120" width="150" height="40" rx="7" class="f-paper soft s-paper"/><text x="325" y="146" text-anchor="middle">CharField</text>
+<rect x="250" y="50" width="150" height="40" rx="7" class="f-surface s-faint"/><text x="325" y="76" text-anchor="middle">@registered</text>
+</g>
+<line x1="170" y1="140" x2="246" y2="140" class="s-paper" stroke-width="2" marker-end="url(#l3-a)"/>
+<text x="178" y="178" font-size="15" class="t-muted">base class</text>
+<line x1="325" y1="90" x2="325" y2="116" class="s-paper" stroke-width="2" marker-end="url(#l3-a)"/>
+<text x="334" y="108" font-size="15" class="t-muted">decorator</text>
+<text x="430" y="70" font-size="17" font-weight="600">Valid samples</text>
+<g font-size="16" class="mono">
+<text x="430" y="98" class="t-code">✓ registered, make_label,</text><text x="450" y="118" class="t-code">Field, CharField</text>
+<text x="430" y="146" class="t-code">✓ Field, make_label,</text><text x="450" y="166" class="t-code">registered, CharField</text>
+<text x="430" y="194" class="t-predict">✗ CharField, Field, …</text>
+</g>
+<rect x="20" y="220" width="640" height="94" rx="10" class="f-code softer s-code"/>
+<text x="36" y="250" font-size="17">Edges come from names needed <tspan font-weight="600">at definition time</tspan>:</text>
+<text x="36" y="276" font-size="16" class="t-muted">decorators, default values, annotations, base classes, class-body code.</text>
+<text x="36" y="300" font-size="16" class="t-muted">A call inside a function body is not an edge: it runs later.</text>
+</svg>

@@ -1,0 +1,30 @@
+<svg class="rd-svg" viewBox="0 0 680 360" role="img" aria-labelledby="l2-t l2-d" xmlns="http://www.w3.org/2000/svg">
+<title id="l2-t">Level 2 namespace mapping, token by token</title>
+<desc id="l2-d">Identifiers are split into subword tokens. Each token gets one replacement for the whole repository: Query becomes Ledger and Set becomes Suite, so QuerySet becomes LedgerSuite, and the same Query to Ledger choice turns query_set.py into ledger_suite.py and RawQuery into RawLedger. Built-ins such as len and third-party names such as numpy are left alone.</desc>
+<defs><marker id="l2-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-muted"/></marker></defs>
+<text x="20" y="32" font-size="18" font-weight="600">1. split</text>
+<text x="250" y="32" font-size="18" font-weight="600">2. one choice per token</text>
+<text x="520" y="32" font-size="18" font-weight="600">3. rebuild</text>
+<g font-size="18" class="mono">
+<text x="20" y="80">QuerySet</text><text x="20" y="130">query_set.py</text><text x="20" y="180">RawQuery</text>
+</g>
+<g font-size="17">
+<rect x="250" y="58" width="80" height="34" rx="6" class="f-predict soft s-predict"/><text x="290" y="81" text-anchor="middle">query</text>
+<line x1="330" y1="75" x2="372" y2="75" class="s-muted" stroke-width="1.5" marker-end="url(#l2-a)"/>
+<rect x="376" y="58" width="88" height="34" rx="6" class="f-predict soft s-predict"/><text x="420" y="81" text-anchor="middle">ledger</text>
+<rect x="250" y="112" width="80" height="34" rx="6" class="f-take soft s-take"/><text x="290" y="135" text-anchor="middle">set</text>
+<line x1="330" y1="129" x2="372" y2="129" class="s-muted" stroke-width="1.5" marker-end="url(#l2-a)"/>
+<rect x="376" y="112" width="88" height="34" rx="6" class="f-take soft s-take"/><text x="420" y="135" text-anchor="middle">suite</text>
+<rect x="250" y="166" width="80" height="34" rx="6" class="f-surface s-faint"/><text x="290" y="189" text-anchor="middle">raw</text>
+<line x1="330" y1="183" x2="372" y2="183" class="s-muted" stroke-width="1.5" marker-end="url(#l2-a)"/>
+<rect x="376" y="166" width="88" height="34" rx="6" class="f-surface s-faint"/><text x="420" y="189" text-anchor="middle">raw*</text>
+</g>
+<g font-size="18" class="mono">
+<text x="520" y="80">LedgerSuite</text><text x="520" y="130">ledger_suite.py</text><text x="520" y="180">RawLedger</text>
+</g>
+<text x="20" y="236" font-size="16" class="t-muted">* a token may keep its name if no candidate is free (the code falls back to the original).</text>
+<rect x="20" y="258" width="640" height="84" rx="10" class="f-code softer s-code"/>
+<text x="36" y="288" font-size="17" font-weight="600" class="t-code">Left untouched:</text>
+<text x="36" y="316" font-size="17" class="mono">len, dict, def, class, numpy.array, os.path …</text>
+<text x="36" y="336" font-size="15" class="t-muted">built-ins, keywords and third-party APIs, so the code still imports and runs</text>
+</svg>

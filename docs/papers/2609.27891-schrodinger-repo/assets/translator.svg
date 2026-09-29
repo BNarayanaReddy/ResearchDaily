@@ -1,0 +1,19 @@
+<svg class="rd-svg" viewBox="0 0 680 330" role="img" aria-labelledby="tr-t tr-d" xmlns="http://www.w3.org/2000/svg">
+<title id="tr-t">The Level 2 translator in one agent step</title>
+<desc id="tr-d">The agent sends grep for render_ in storage_engine. The translator converts it to grep for get_ in django/db and the real container runs it. The container returns a hit in django/db/models/fields/__init__.py containing get_%s_display, which the translator converts to storage_engine/object_models/entries/__init__.py containing render_%s_label before the agent sees it.</desc>
+<defs><marker id="tr-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-muted"/></marker></defs>
+<rect x="10" y="10" width="170" height="44" rx="8" class="f-take soft s-take"/><text x="95" y="39" text-anchor="middle" font-size="18" font-weight="600">Agent</text>
+<rect x="255" y="10" width="170" height="44" rx="8" class="f-code soft s-code"/><text x="340" y="39" text-anchor="middle" font-size="18" font-weight="600">Translator</text>
+<rect x="500" y="10" width="170" height="44" rx="8" class="f-paper soft s-paper"/><text x="585" y="39" text-anchor="middle" font-size="18" font-weight="600">Real container</text>
+<line x1="95" y1="54" x2="95" y2="320" class="s-faint" stroke-dasharray="4 4"/><line x1="340" y1="54" x2="340" y2="320" class="s-faint" stroke-dasharray="4 4"/><line x1="585" y1="54" x2="585" y2="320" class="s-faint" stroke-dasharray="4 4"/>
+<text x="102" y="86" font-size="16" class="mono t-take">grep "render_" storage_engine/</text>
+<line x1="95" y1="98" x2="336" y2="98" class="s-take" stroke-width="2" marker-end="url(#tr-a)"/>
+<text x="347" y="140" font-size="16" class="mono t-paper">grep "get_" django/db/</text>
+<line x1="340" y1="152" x2="581" y2="152" class="s-paper" stroke-width="2" marker-end="url(#tr-a)"/>
+<text x="578" y="194" font-size="15" text-anchor="end" class="mono t-paper">django/db/models/fields/…: get_%s_display</text>
+<line x1="585" y1="206" x2="344" y2="206" class="s-paper" stroke-width="2" marker-end="url(#tr-a)"/>
+<text x="102" y="250" font-size="15" class="mono t-take">storage_engine/object_models/entries/…:</text>
+<text x="102" y="272" font-size="15" class="mono t-take">render_%s_label</text>
+<line x1="340" y1="290" x2="99" y2="290" class="s-take" stroke-width="2" marker-end="url(#tr-a)"/>
+<text x="350" y="316" font-size="15" class="t-muted">violet = virtual names · blue = real names</text>
+</svg>

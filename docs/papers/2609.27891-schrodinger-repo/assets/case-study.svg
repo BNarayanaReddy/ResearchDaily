@@ -1,0 +1,25 @@
+<svg class="rd-svg" viewBox="0 0 680 330" role="img" aria-labelledby="cs-t cs-d" xmlns="http://www.w3.org/2000/svg">
+<title id="cs-t">Same issue, same final patch, 37 versus 217 actions</title>
+<desc id="cs-d">Two horizontal bars. On the canonical Django repository the agent greps for get_.*_display, lands in django/db/models/fields and fixes the bug in 37 actions. On the transformed view it lists files, enumerates Python files, searches source and tests, opens storage_engine/object_models/entries, checks tests, config and a reproduction script, and fixes it in 217 actions. The submitted patch is the same.</desc>
+<!-- numbers from §V-E of arXiv:2609.27891v1: 37 -> 217 actions on django__django-11999 -->
+<text x="20" y="30" font-size="18" font-weight="600">django__django-11999: actions until the fix</text>
+<text x="20" y="72" font-size="17">canonical</text>
+<rect x="140" y="52" width="85.3" height="30" class="f-paper"/>
+<text x="234" y="74" font-size="17" font-weight="600">37</text>
+<text x="20" y="132" font-size="17">transformed</text>
+<rect x="140" y="112" width="500" height="30" class="f-predict"/>
+<text x="600" y="133" font-size="17" font-weight="600" text-anchor="end">217</text>
+<text x="140" y="104" font-size="14" class="t-muted">(bar lengths to scale: 1 action ≈ 2.3 px)</text>
+<rect x="20" y="164" width="310" height="150" rx="10" class="f-paper softer s-paper"/>
+<text x="36" y="192" font-size="17" font-weight="600" class="t-paper">Familiar names</text>
+<text x="36" y="218" font-size="15" class="mono">grep get_.*_display</text>
+<text x="36" y="242" font-size="15">→ hits fields/__init__.py</text>
+<text x="36" y="266" font-size="15">→ sees unconditional setattr</text>
+<text x="36" y="290" font-size="15">→ guard it. Done.</text>
+<rect x="350" y="164" width="310" height="150" rx="10" class="f-predict softer s-predict"/>
+<text x="366" y="192" font-size="17" font-weight="600" class="t-predict">Unfamiliar names</text>
+<text x="366" y="218" font-size="15">ls, find *.py, tree, grep tests…</text>
+<text x="366" y="242" font-size="15">→ finds render_%s_label</text>
+<text x="366" y="266" font-size="15">→ re-checks tests, config, repro</text>
+<text x="366" y="290" font-size="15">→ same guard. Same patch.</text>
+</svg>
