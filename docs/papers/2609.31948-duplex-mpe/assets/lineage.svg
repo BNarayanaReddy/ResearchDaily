@@ -1,0 +1,17 @@
+<svg class="rd-svg" viewBox="0 0 680 470" role="img" aria-labelledby="ln-t ln-d" xmlns="http://www.w3.org/2000/svg">
+<title id="ln-t">Where Duplex-MPE comes from</title>
+<desc id="ln-d">A vertical timeline of prior work: addressee identification in meetings (2004), addressee and response selection in text (2016), Moshi full-duplex speech (2024), full-duplex turn-taking benchmarks (2025), overlap and rejection benchmarks plus text speak-or-stay-silent datasets (2026), and finally Duplex-MPE (2026), which combines addressee inference with full-duplex speech control.</desc>
+<line x1="110" y1="30" x2="110" y2="440" class="s-faint" stroke-width="3"/>
+<circle cx="110" cy="45" r="8" class="f-paper"/><text x="90" y="51" text-anchor="end" font-size="17" font-weight="600">2004</text>
+<text x="130" y="42" font-size="17" font-weight="600">Addressee identification in meetings</text><text x="130" y="64" font-size="15" class="t-muted">Jovanovic &amp; op den Akker · label a given utterance</text>
+<circle cx="110" cy="115" r="8" class="f-paper"/><text x="90" y="121" text-anchor="end" font-size="17" font-weight="600">2016</text>
+<text x="130" y="112" font-size="17" font-weight="600">Addressee + response selection (text)</text><text x="130" y="134" font-size="15" class="t-muted">Ouchi &amp; Tsuboi; later MPC-BERT (2021)</text>
+<circle cx="110" cy="185" r="8" class="f-bridge"/><text x="90" y="191" text-anchor="end" font-size="17" font-weight="600">2024</text>
+<text x="130" y="182" font-size="17" font-weight="600">Moshi: listen while speaking</text><text x="130" y="204" font-size="15" class="t-muted">full-duplex speech model, parallel streams</text>
+<circle cx="110" cy="255" r="8" class="f-bridge"/><text x="90" y="261" text-anchor="end" font-size="17" font-weight="600">2025</text>
+<text x="130" y="252" font-size="17" font-weight="600">Talking Turns, Full-Duplex-Bench</text><text x="130" y="274" font-size="15" class="t-muted">take / hold / yield the floor with ONE user</text>
+<circle cx="110" cy="325" r="8" class="f-bridge"/><text x="90" y="331" text-anchor="end" font-size="17" font-weight="600">2026</text>
+<text x="130" y="322" font-size="17" font-weight="600">FD-Bench v1.5, HumDial · Speak or Stay Silent</text><text x="130" y="344" font-size="15" class="t-muted">reject side talk (audio) · silence as output (text)</text>
+<circle cx="110" cy="410" r="11" class="f-predict"/><text x="90" y="416" text-anchor="end" font-size="17" font-weight="600">2026</text>
+<text x="130" y="407" font-size="18" font-weight="700" class="t-predict">Duplex-MPE</text><text x="130" y="430" font-size="15">addressee inference as speech control, no fixed user</text>
+</svg>

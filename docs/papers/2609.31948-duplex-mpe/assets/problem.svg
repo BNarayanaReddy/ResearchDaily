@@ -1,0 +1,33 @@
+<svg class="rd-svg" viewBox="0 0 680 400" role="img" aria-labelledby="pb-t pb-d" xmlns="http://www.w3.org/2000/svg">
+<title id="pb-t">Designated user versus shared conversation</title>
+<desc id="pb-d">Left: earlier full-duplex benchmarks have one designated user talking to the assistant, and other speech is interference to reject. Right: in Duplex-MPE four people share the room; one gives a price the assistant will need, one talks to another device, one asks the assistant, and one later resolves a question for it.</desc>
+<defs><marker id="pb-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-muted"/></marker></defs>
+<rect x="10" y="10" width="318" height="380" rx="12" class="f-surface s-faint"/>
+<text x="169" y="42" text-anchor="middle" font-size="18" font-weight="600">Earlier duplex benchmarks</text>
+<circle cx="80" cy="140" r="30" class="f-paper soft s-paper" stroke-width="1.5"/><text x="80" y="146" text-anchor="middle" font-size="16">User</text>
+<circle cx="260" cy="140" r="30" class="f-bridge soft s-bridge" stroke-width="1.5"/><text x="260" y="146" text-anchor="middle" font-size="16">AI</text>
+<line x1="112" y1="140" x2="226" y2="140" class="s-paper" stroke-width="2" marker-end="url(#pb-a)" marker-start="url(#pb-a)"/>
+<text x="169" y="126" text-anchor="middle" font-size="15">the conversation</text>
+<circle cx="80" cy="270" r="26" class="f-faint soft s-faint"/><text x="80" y="276" text-anchor="middle" font-size="15">other</text>
+<line x1="108" y1="262" x2="226" y2="170" class="s-faint" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="192" y="252" font-size="22" class="t-predict" font-weight="700">✕</text>
+<text x="169" y="330" text-anchor="middle" font-size="15" class="t-muted">side talk = interference</text>
+<text x="169" y="352" text-anchor="middle" font-size="15" class="t-muted">to filter out</text>
+<rect x="352" y="10" width="318" height="380" rx="12" class="f-surface s-faint"/>
+<text x="511" y="42" text-anchor="middle" font-size="18" font-weight="600">Duplex-MPE: shared room</text>
+<circle cx="511" cy="210" r="30" class="f-bridge soft s-bridge" stroke-width="1.5"/><text x="511" y="216" text-anchor="middle" font-size="16">Aria</text>
+<circle cx="410" cy="100" r="24" class="f-paper soft s-paper"/><text x="410" y="106" text-anchor="middle" font-size="16">A</text>
+<text x="410" y="70" text-anchor="middle" font-size="14" class="t-muted">“tacos, $9”</text>
+<circle cx="612" cy="100" r="24" class="f-paper soft s-paper"/><text x="612" y="106" text-anchor="middle" font-size="16">B</text>
+<text x="612" y="70" text-anchor="middle" font-size="14" class="t-muted">“Hey Siri…”</text>
+<circle cx="410" cy="320" r="24" class="f-paper soft s-paper"/><text x="410" y="326" text-anchor="middle" font-size="16">D</text>
+<text x="410" y="366" text-anchor="middle" font-size="14" class="t-predict">asks Aria</text>
+<circle cx="612" cy="320" r="24" class="f-paper soft s-paper"/><text x="612" y="326" text-anchor="middle" font-size="16">C</text>
+<text x="612" y="366" text-anchor="middle" font-size="14" class="t-take">“never mind”</text>
+<line x1="428" y1="118" x2="486" y2="190" class="s-paper" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#pb-a)"/>
+<text x="424" y="164" font-size="14" class="t-muted">evidence</text>
+<line x1="600" y1="122" x2="600" y2="170" class="s-faint" stroke-width="1.5" marker-end="url(#pb-a)"/>
+<text x="604" y="190" font-size="14" class="t-muted">to a device</text>
+<line x1="430" y1="302" x2="486" y2="232" class="s-predict" stroke-width="2" marker-end="url(#pb-a)"/>
+<line x1="592" y1="302" x2="536" y2="232" class="s-take" stroke-width="2" marker-end="url(#pb-a)"/>
+</svg>

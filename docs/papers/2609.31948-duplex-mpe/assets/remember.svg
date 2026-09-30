@@ -1,0 +1,19 @@
+<svg class="rd-svg" viewBox="0 0 680 300" role="img" aria-labelledby="rm-t rm-d" xmlns="http://www.w3.org/2000/svg">
+<title id="rm-t">Start, Say, Shush, Stop</title>
+<desc id="rm-d">Four cards summarising the four Duplex-MPE capabilities with the best speech system's explicit-condition score: Start 0.95, Say 0.47, Shush 0.92, Stop 0.60, all from MiniCPM-o 4.5, and the phrase presence isn't participation.</desc>
+<text x="340" y="32" text-anchor="middle" font-size="20" font-weight="700">Presence isn’t participation</text>
+<rect x="20" y="56" width="148" height="160" rx="10" class="f-paper soft s-paper" stroke-width="1.5"/>
+<text x="94" y="92" text-anchor="middle" font-size="20" font-weight="700">START</text><text x="94" y="122" text-anchor="middle" font-size="15">new onset</text><text x="94" y="142" text-anchor="middle" font-size="15">within 5 s of T</text>
+<text x="94" y="190" text-anchor="middle" font-size="22" font-weight="700" class="t-paper">0.95</text>
+<rect x="182" y="56" width="148" height="160" rx="10" class="f-paper soft s-paper" stroke-width="1.5"/>
+<text x="256" y="92" text-anchor="middle" font-size="20" font-weight="700">SAY</text><text x="256" y="122" text-anchor="middle" font-size="15">right answer,</text><text x="256" y="142" text-anchor="middle" font-size="15">if it spoke</text>
+<text x="256" y="190" text-anchor="middle" font-size="22" font-weight="700" class="t-predict">0.47</text>
+<rect x="344" y="56" width="148" height="160" rx="10" class="f-paper soft s-paper" stroke-width="1.5"/>
+<text x="418" y="92" text-anchor="middle" font-size="20" font-weight="700">SHUSH</text><text x="418" y="122" text-anchor="middle" font-size="15">quiet on N1–N3</text><text x="418" y="142" text-anchor="middle" font-size="15">(“mm-hm” ok)</text>
+<text x="418" y="190" text-anchor="middle" font-size="22" font-weight="700" class="t-paper">0.92</text>
+<rect x="506" y="56" width="148" height="160" rx="10" class="f-take soft s-take" stroke-width="1.5"/>
+<text x="580" y="92" text-anchor="middle" font-size="20" font-weight="700">STOP</text><text x="580" y="122" text-anchor="middle" font-size="15">silent 2 s after</text><text x="580" y="142" text-anchor="middle" font-size="15">a human resolves</text>
+<text x="580" y="190" text-anchor="middle" font-size="22" font-weight="700" class="t-take">0.60</text>
+<text x="340" y="252" text-anchor="middle" font-size="16" class="t-muted">best speech system (MiniCPM-o 4.5, explicit, Table 3)</text>
+<text x="340" y="280" text-anchor="middle" font-size="16" class="t-muted">separate denominators · no average · naming Aria barely matters to speech models</text>
+</svg>

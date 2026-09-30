@@ -1,0 +1,45 @@
+<svg class="rd-svg" viewBox="0 0 680 520" role="img" aria-labelledby="op-t op-d" xmlns="http://www.w3.org/2000/svg">
+<title id="op-t">Duplex-MPE in one picture</title>
+<desc id="op-d">A 13-turn multi-party conversation is streamed as continuous audio to a full-duplex model called Aria. Each turn has a label saying whether Aria should stay silent, answer, or stop. The model's output waveform is scored on four separate capabilities: starting a fresh answer, answering correctly, staying silent, and stopping when a human resolves the question. No average is formed.</desc>
+<defs><marker id="op-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-muted"/></marker></defs>
+<text x="340" y="26" text-anchor="middle" font-size="18" font-weight="600">Continuous room audio: 3–4 humans, no transcript, no turn boundaries</text>
+<rect x="20" y="42" width="44" height="40" rx="6" class="f-faint soft s-faint"/><text x="42" y="68" text-anchor="middle" font-size="16">N2</text>
+<rect x="68" y="42" width="44" height="40" rx="6" class="f-faint soft s-faint"/><text x="90" y="68" text-anchor="middle" font-size="16">N2</text>
+<rect x="116" y="42" width="44" height="40" rx="6" class="f-faint soft s-faint"/><text x="138" y="68" text-anchor="middle" font-size="16">N2</text>
+<rect x="164" y="42" width="44" height="40" rx="6" class="f-predict soft s-predict" stroke-width="2"/><text x="186" y="68" text-anchor="middle" font-size="17" font-weight="700">T</text>
+<rect x="212" y="42" width="44" height="40" rx="6" class="f-faint soft s-faint"/><text x="234" y="68" text-anchor="middle" font-size="16">N1</text>
+<rect x="260" y="42" width="44" height="40" rx="6" class="f-faint soft s-faint"/><text x="282" y="68" text-anchor="middle" font-size="16">N2</text>
+<rect x="308" y="42" width="44" height="40" rx="6" class="f-faint soft s-faint"/><text x="330" y="68" text-anchor="middle" font-size="16">N3</text>
+<rect x="356" y="42" width="44" height="40" rx="6" class="f-faint soft s-faint"/><text x="378" y="68" text-anchor="middle" font-size="16">N2</text>
+<rect x="404" y="42" width="44" height="40" rx="6" class="f-faint soft s-faint"/><text x="426" y="68" text-anchor="middle" font-size="16">N2</text>
+<rect x="452" y="42" width="44" height="40" rx="6" class="f-predict soft s-predict" stroke-width="2"/><text x="474" y="68" text-anchor="middle" font-size="16" font-weight="700">Q</text>
+<rect x="500" y="42" width="44" height="40" rx="6" class="f-take soft s-take" stroke-width="2"/><text x="522" y="68" text-anchor="middle" font-size="16" font-weight="700">R</text>
+<rect x="548" y="42" width="44" height="40" rx="6" class="f-faint soft s-faint"/><text x="570" y="68" text-anchor="middle" font-size="16">N1</text>
+<rect x="596" y="42" width="44" height="40" rx="6" class="f-faint soft s-faint"/><text x="618" y="68" text-anchor="middle" font-size="16">N2</text>
+<text x="186" y="104" text-anchor="middle" font-size="15" class="t-predict">answer</text>
+<text x="474" y="104" text-anchor="middle" font-size="15" class="t-predict">answer</text>
+<text x="522" y="122" text-anchor="middle" font-size="15" class="t-take">then stop</text>
+<text x="330" y="104" text-anchor="middle" font-size="15" class="t-muted">grey = stay silent</text>
+<text x="20" y="146" font-size="15" class="t-muted">T = the one request to Aria · Q/R = N4: a question to Aria, then a human resolves it</text>
+<line x1="340" y1="158" x2="340" y2="192" class="s-muted" stroke-width="1.5" marker-end="url(#op-a)"/>
+<rect x="150" y="196" width="380" height="74" rx="10" class="f-bridge soft s-bridge" stroke-width="1.5"/>
+<text x="340" y="226" text-anchor="middle" font-size="18" font-weight="600">Full-duplex model plays “Aria”</text>
+<text x="340" y="252" text-anchor="middle" font-size="16">listens and emits its own waveform, frame by frame</text>
+<line x1="340" y1="270" x2="340" y2="302" class="s-muted" stroke-width="1.5" marker-end="url(#op-a)"/>
+<rect x="150" y="306" width="380" height="48" rx="10" class="f-surface s-faint"/>
+<text x="340" y="336" text-anchor="middle" font-size="16">VAD on the output → ASR → LLM judge</text>
+<line x1="340" y1="354" x2="340" y2="378" class="s-muted" stroke-width="1.5" marker-end="url(#op-a)"/>
+<rect x="20" y="382" width="148" height="100" rx="9" class="f-paper soft s-paper" stroke-width="1.5"/>
+<text x="94" y="410" text-anchor="middle" font-size="17" font-weight="700">START</text>
+<text x="94" y="436" text-anchor="middle" font-size="15">fresh-onset</text><text x="94" y="456" text-anchor="middle" font-size="15">response rate</text>
+<rect x="182" y="382" width="148" height="100" rx="9" class="f-paper soft s-paper" stroke-width="1.5"/>
+<text x="256" y="410" text-anchor="middle" font-size="17" font-weight="700">SAY</text>
+<text x="256" y="436" text-anchor="middle" font-size="15">conditional</text><text x="256" y="456" text-anchor="middle" font-size="15">answer accuracy</text>
+<rect x="344" y="382" width="148" height="100" rx="9" class="f-paper soft s-paper" stroke-width="1.5"/>
+<text x="418" y="410" text-anchor="middle" font-size="17" font-weight="700">SHUSH</text>
+<text x="418" y="436" text-anchor="middle" font-size="15">silence</text><text x="418" y="456" text-anchor="middle" font-size="15">preservation</text>
+<rect x="506" y="382" width="148" height="100" rx="9" class="f-take soft s-take" stroke-width="1.5"/>
+<text x="580" y="410" text-anchor="middle" font-size="17" font-weight="700">STOP</text>
+<text x="580" y="436" text-anchor="middle" font-size="15">answering-</text><text x="580" y="456" text-anchor="middle" font-size="15">window yield</text>
+<text x="340" y="508" text-anchor="middle" font-size="16" class="t-predict" font-weight="600">four denominators, no average</text>
+</svg>
