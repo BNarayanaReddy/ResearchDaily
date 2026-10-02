@@ -1,0 +1,25 @@
+<svg class="rd-svg" viewBox="0 0 640 450" role="img" aria-labelledby="sc-t sc-d" xmlns="http://www.w3.org/2000/svg">
+<title id="sc-t">What the robot does not know yet decides what evidence it needs</title>
+<desc id="sc-d">Two-by-two map. Columns: task relation unchanged or new. Rows: physical response familiar or new. Familiar task and response: prior competence is enough. New relation, familiar response: teach it with a demo or instruction, such as a new kit order. Familiar relation, new response: probe it with action-effect history, such as a stiffer connector. Both new: teach and probe, coupled at every step, such as a new fold on unfamiliar fabric.</desc>
+<rect x="90" y="30" width="265" height="170" rx="8" class="f-paper soft s-paper" stroke-width="1.5"/>
+<rect x="365" y="30" width="265" height="170" rx="8" class="f-take soft s-take" stroke-width="1.5"/>
+<rect x="90" y="210" width="265" height="170" rx="8" class="f-surface s-muted" stroke-width="1.5"/>
+<rect x="365" y="210" width="265" height="170" rx="8" class="f-predict soft s-predict" stroke-width="1.5"/>
+<text x="222" y="90" text-anchor="middle" font-size="20" font-weight="700">Probe it</text>
+<text x="222" y="122" text-anchor="middle" font-size="18">action-effect history</text>
+<text x="222" y="152" text-anchor="middle" font-size="18" class="t-muted">e.g. stiffer connector</text>
+<text x="497" y="90" text-anchor="middle" font-size="20" font-weight="700">Teach and probe</text>
+<text x="497" y="122" text-anchor="middle" font-size="18">coupled at every step</text>
+<text x="497" y="152" text-anchor="middle" font-size="18" class="t-muted">e.g. new fold, new fabric</text>
+<text x="222" y="270" text-anchor="middle" font-size="20" font-weight="700">Baseline</text>
+<text x="222" y="302" text-anchor="middle" font-size="18">prior competence</text>
+<text x="222" y="328" text-anchor="middle" font-size="18">is enough</text>
+<text x="497" y="270" text-anchor="middle" font-size="20" font-weight="700">Teach it</text>
+<text x="497" y="302" text-anchor="middle" font-size="18">demo or instruction</text>
+<text x="497" y="332" text-anchor="middle" font-size="18" class="t-muted">e.g. new kit order</text>
+<text x="222" y="410" text-anchor="middle" font-size="18">same task relation</text>
+<text x="497" y="410" text-anchor="middle" font-size="18">new task relation</text>
+<text x="320" y="440" text-anchor="middle" font-size="18" class="t-muted">what the task asks →</text>
+<text x="58" y="115" text-anchor="middle" font-size="18" transform="rotate(-90 58 115)">new body response</text>
+<text x="58" y="295" text-anchor="middle" font-size="18" transform="rotate(-90 58 295)">familiar response</text>
+</svg>

@@ -96,6 +96,8 @@ plugins:
         - Evaluation
         - Systems
         - Code
+        - Robotics
+        - In-context learning
 
 markdown_extensions:
   - abbr

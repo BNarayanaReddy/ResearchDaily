@@ -1,0 +1,22 @@
+<svg class="rd-svg" viewBox="0 0 640 360" role="img" aria-labelledby="hz-t hz-d" xmlns="http://www.w3.org/2000/svg">
+<title id="hz-t">Six learning horizons, S1 to S6</title>
+<desc id="hz-d">A stack of six horizons. S1 explicit control programming and S2 neural policy learning supply prior competence. S3 history-based adaptation and S4 in-context task learning are in-context learning with weights fixed. S5 physical recursive self-improvement and S6 collective knowledge evolution form the research agenda.</desc>
+<rect x="20" y="16" width="440" height="46" rx="8" class="f-predict softer s-predict" stroke-width="1.2"/>
+<text x="36" y="46" font-size="18"><tspan font-weight="700">S6</tspan>  Collective knowledge evolution</text>
+<rect x="20" y="70" width="440" height="46" rx="8" class="f-predict softer s-predict" stroke-width="1.2"/>
+<text x="36" y="100" font-size="18"><tspan font-weight="700">S5</tspan>  Physical recursive self-improvement</text>
+<rect x="20" y="124" width="440" height="46" rx="8" class="f-take soft s-take" stroke-width="1.5"/>
+<text x="36" y="154" font-size="18"><tspan font-weight="700">S4</tspan>  In-context task learning (teaching)</text>
+<rect x="20" y="178" width="440" height="46" rx="8" class="f-take soft s-take" stroke-width="1.5"/>
+<text x="36" y="208" font-size="18"><tspan font-weight="700">S3</tspan>  History-based adaptation (interaction)</text>
+<rect x="20" y="232" width="440" height="46" rx="8" class="f-surface s-muted" stroke-width="1.2"/>
+<text x="36" y="262" font-size="18"><tspan font-weight="700">S2</tspan>  Neural policy learning</text>
+<rect x="20" y="286" width="440" height="46" rx="8" class="f-surface s-muted" stroke-width="1.2"/>
+<text x="36" y="316" font-size="18"><tspan font-weight="700">S1</tspan>  Explicit control programming</text>
+<path d="M472,20 L484,20 L484,112 L472,112" class="s-predict f-none" stroke-width="2"/>
+<text x="494" y="60" font-size="18" class="t-predict">research</text><text x="494" y="82" font-size="18" class="t-predict">agenda</text>
+<path d="M472,128 L484,128 L484,220 L472,220" class="s-take f-none" stroke-width="2"/>
+<text x="494" y="160" font-size="18" class="t-take">ICL for robots:</text><text x="494" y="182" font-size="18" class="t-take">weights fixed</text>
+<path d="M472,236 L484,236 L484,328 L472,328" class="s-muted f-none" stroke-width="2"/>
+<text x="494" y="276" font-size="18" class="t-muted">prior</text><text x="494" y="298" font-size="18" class="t-muted">competence</text>
+</svg>

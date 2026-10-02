@@ -1,0 +1,21 @@
+<svg class="rd-svg" viewBox="0 0 640 310" role="img" aria-labelledby="s1-t s1-d" xmlns="http://www.w3.org/2000/svg">
+<title id="s1-t">S1 on unseen tasks: demo prompts versus language prompts</title>
+<desc id="s1-d">Slope chart of step success on unseen tasks between 1k and 100k pretraining hours. Demonstration prompting rises from 1 percent to 66 percent; language prompting rises from 0 percent to 9 percent.</desc>
+<line x1="100" y1="240" x2="560" y2="240" class="s-muted" stroke-width="1.2"/>
+<line x1="100" y1="168.6" x2="560" y2="168.6" class="s-faint" stroke-width="0.8"/>
+<line x1="100" y1="97.1" x2="560" y2="97.1" class="s-faint" stroke-width="0.8"/>
+<text x="92" y="246" text-anchor="end" font-size="17" class="t-muted">0</text>
+<text x="92" y="174" text-anchor="end" font-size="17" class="t-muted">25</text>
+<text x="92" y="103" text-anchor="end" font-size="17" class="t-muted">50</text>
+<text x="26" y="160" text-anchor="middle" font-size="17" transform="rotate(-90 26 160)">success (%) ↑</text>
+<line x1="160" y1="237.1" x2="440" y2="51.4" class="s-paper" stroke-width="3"/>
+<circle cx="160" cy="237.1" r="6" class="f-paper"/><circle cx="440" cy="51.4" r="6" class="f-paper"/>
+<line x1="160" y1="240" x2="440" y2="214.3" class="s-take" stroke-width="3" stroke-dasharray="7 5"/>
+<circle cx="160" cy="240" r="6" class="f-take"/><circle cx="440" cy="214.3" r="6" class="f-take"/>
+<text x="452" y="50" font-size="19" class="t-paper" font-weight="700">demo 66%</text>
+<text x="452" y="212" font-size="19" class="t-take" font-weight="700">language 9%</text>
+<text x="150" y="222" text-anchor="end" font-size="18" class="t-muted">0–1%</text>
+<text x="160" y="268" text-anchor="middle" font-size="18">1k h</text>
+<text x="440" y="268" text-anchor="middle" font-size="18">100k h</text>
+<text x="320" y="298" text-anchor="middle" font-size="18" class="t-muted">pretraining hours (unseen tasks only)</text>
+</svg>

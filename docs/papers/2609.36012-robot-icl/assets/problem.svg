@@ -1,0 +1,31 @@
+<svg class="rd-svg" viewBox="0 0 640 350" role="img" aria-labelledby="pb-t pb-d" xmlns="http://www.w3.org/2000/svg">
+<title id="pb-t">Same final tray, different order</title>
+<desc id="pb-d">Two robots pack a kit of two plates and three bushings. The top robot follows a plate-first demonstration; the bottom robot puts bushings first. Their early and middle trays differ, but their final trays are identical.</desc>
+<defs><marker id="pb-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-muted"/></marker></defs>
+<text x="115" y="34" text-anchor="middle" font-size="18" class="t-muted">early</text>
+<text x="320" y="34" text-anchor="middle" font-size="18" class="t-muted">middle</text>
+<text x="525" y="34" text-anchor="middle" font-size="18" class="t-muted">final tray</text>
+<text x="40" y="70" font-size="19" font-weight="700">Followed the plate-first demo</text>
+<rect x="40" y="82" width="150" height="72" rx="8" class="f-surface s-muted" stroke-width="1.5"/>
+<circle cx="80" cy="118" r="15" class="f-paper"/>
+<line x1="196" y1="118" x2="238" y2="118" class="s-muted" stroke-width="1.5" marker-end="url(#pb-arrow)"/>
+<rect x="245" y="82" width="150" height="72" rx="8" class="f-surface s-muted" stroke-width="1.5"/>
+<circle cx="285" cy="118" r="15" class="f-paper"/><circle cx="325" cy="118" r="15" class="f-paper"/>
+<line x1="401" y1="118" x2="443" y2="118" class="s-muted" stroke-width="1.5" marker-end="url(#pb-arrow)"/>
+<rect x="450" y="82" width="150" height="72" rx="8" class="f-hl s-predict" stroke-width="2.5"/>
+<circle cx="480" cy="118" r="15" class="f-paper"/><circle cx="516" cy="118" r="15" class="f-paper"/>
+<rect x="540" y="96" width="14" height="14" class="f-code"/><rect x="562" y="96" width="14" height="14" class="f-code"/><rect x="551" y="124" width="14" height="14" class="f-code"/>
+<text x="40" y="200" font-size="19" font-weight="700">Ignored it (bushings first)</text>
+<rect x="40" y="212" width="150" height="72" rx="8" class="f-surface s-muted" stroke-width="1.5"/>
+<rect x="74" y="241" width="14" height="14" class="f-code"/>
+<line x1="196" y1="248" x2="238" y2="248" class="s-muted" stroke-width="1.5" marker-end="url(#pb-arrow)"/>
+<rect x="245" y="212" width="150" height="72" rx="8" class="f-surface s-muted" stroke-width="1.5"/>
+<rect x="275" y="241" width="14" height="14" class="f-code"/><rect x="300" y="241" width="14" height="14" class="f-code"/><rect x="325" y="241" width="14" height="14" class="f-code"/>
+<line x1="401" y1="248" x2="443" y2="248" class="s-muted" stroke-width="1.5" marker-end="url(#pb-arrow)"/>
+<rect x="450" y="212" width="150" height="72" rx="8" class="f-hl s-predict" stroke-width="2.5"/>
+<circle cx="480" cy="248" r="15" class="f-paper"/><circle cx="516" cy="248" r="15" class="f-paper"/>
+<rect x="540" y="226" width="14" height="14" class="f-code"/><rect x="562" y="226" width="14" height="14" class="f-code"/><rect x="551" y="254" width="14" height="14" class="f-code"/>
+<circle cx="60" cy="325" r="10" class="f-paper"/><text x="78" y="331" font-size="18">plate</text>
+<rect x="160" y="318" width="14" height="14" class="f-code"/><text x="182" y="331" font-size="18">bushing</text>
+<text x="600" y="331" text-anchor="end" font-size="18" class="t-predict">identical at the end</text>
+</svg>

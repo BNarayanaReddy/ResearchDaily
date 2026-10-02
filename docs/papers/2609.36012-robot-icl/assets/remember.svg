@@ -1,0 +1,21 @@
+<svg class="rd-svg" viewBox="0 0 640 330" role="img" aria-labelledby="rm-t rm-d" xmlns="http://www.w3.org/2000/svg">
+<title id="rm-t">ARFS: four doors and what must survive each</title>
+<desc id="rm-d">Act: the representation must keep the taught distinction. Retarget: the matched interaction must still apply. Forecast: the predicted future must be reachable. Script: the available skills must keep the task's constraints.</desc>
+<text x="320" y="30" text-anchor="middle" font-size="20" font-weight="700">ARFS: what must survive the trip?</text>
+<rect x="20" y="50" width="290" height="120" rx="10" class="f-take soft s-take" stroke-width="1.5"/>
+<text x="165" y="86" text-anchor="middle" font-size="23" font-weight="700">Act</text>
+<text x="165" y="118" text-anchor="middle" font-size="18">features must keep</text>
+<text x="165" y="144" text-anchor="middle" font-size="18">the taught distinction</text>
+<rect x="330" y="50" width="290" height="120" rx="10" class="f-take soft s-take" stroke-width="1.5"/>
+<text x="475" y="86" text-anchor="middle" font-size="23" font-weight="700">Retarget</text>
+<text x="475" y="118" text-anchor="middle" font-size="18">the matched contact</text>
+<text x="475" y="144" text-anchor="middle" font-size="18">must still apply</text>
+<rect x="20" y="190" width="290" height="120" rx="10" class="f-take soft s-take" stroke-width="1.5"/>
+<text x="165" y="226" text-anchor="middle" font-size="23" font-weight="700">Forecast</text>
+<text x="165" y="258" text-anchor="middle" font-size="18">the predicted future</text>
+<text x="165" y="284" text-anchor="middle" font-size="18">must be reachable</text>
+<rect x="330" y="190" width="290" height="120" rx="10" class="f-take soft s-take" stroke-width="1.5"/>
+<text x="475" y="226" text-anchor="middle" font-size="23" font-weight="700">Script</text>
+<text x="475" y="258" text-anchor="middle" font-size="18">the skills must keep</text>
+<text x="475" y="284" text-anchor="middle" font-size="18">the task's constraints</text>
+</svg>

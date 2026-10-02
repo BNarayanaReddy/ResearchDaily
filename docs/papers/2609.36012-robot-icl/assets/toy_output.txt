@@ -1,0 +1,12 @@
+seed 0 shortcut  | both reached 0.75 | follows demo: cue agrees 1.00, cue clashes 0.25 | same-order demo keeps move 1.00 | flipped demo flips move 0.51 | zero demo hits a target 0.02
+   attention: mean |alpha - 0.5| = 0.086; forced to exactly 0.5, the first move follows the demo 0.50
+seed 0 ambiguous | both reached 1.00 | follows demo: cue agrees 1.00, cue clashes 1.00 | same-order demo keeps move 1.00 | flipped demo flips move 1.00 | zero demo hits a target 0.00
+   attention: mean |alpha - 0.5| = 0.084; forced to exactly 0.5, the first move follows the demo 0.51
+seed 1 shortcut  | both reached 0.74 | follows demo: cue agrees 1.00, cue clashes 0.25 | same-order demo keeps move 1.00 | flipped demo flips move 0.51 | zero demo hits a target 0.26
+   attention: mean |alpha - 0.5| = 0.104; forced to exactly 0.5, the first move follows the demo 0.51
+seed 1 ambiguous | both reached 1.00 | follows demo: cue agrees 1.00, cue clashes 1.00 | same-order demo keeps move 1.00 | flipped demo flips move 1.00 | zero demo hits a target 0.18
+   attention: mean |alpha - 0.5| = 0.086; forced to exactly 0.5, the first move follows the demo 0.50
+seed 2 shortcut  | both reached 0.83 | follows demo: cue agrees 1.00, cue clashes 0.67 | same-order demo keeps move 0.99 | flipped demo flips move 0.92 | zero demo hits a target 0.34
+   attention: mean |alpha - 0.5| = 0.316; forced to exactly 0.5, the first move follows the demo 0.51
+seed 2 ambiguous | both reached 1.00 | follows demo: cue agrees 1.00, cue clashes 1.00 | same-order demo keeps move 1.00 | flipped demo flips move 1.00 | zero demo hits a target 0.39
+   attention: mean |alpha - 0.5| = 0.084; forced to exactly 0.5, the first move follows the demo 0.50

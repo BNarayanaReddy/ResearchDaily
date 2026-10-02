@@ -1,0 +1,31 @@
+<svg class="rd-svg" viewBox="0 0 640 560" role="img" aria-labelledby="ln-t ln-d" xmlns="http://www.w3.org/2000/svg">
+<title id="ln-t">Lineage of in-context learning for robots</title>
+<desc id="ln-d">Timeline. 2016: RL squared carries adaptation in recurrent state. 2017: one-shot imitation from paired demos, and Neural Task Programming. 2020: GPT-3 few-shot prompting. 2021: RMA infers a body's dynamics from history. 2022: Code as Policies and VIMA multimodal prompts. 2024: ICRT and Instant Policy. 2026: S1 and GEN-1.5 demo prompts, and this survey. Entries are coloured by root: learning from interaction, or learning from teaching.</desc>
+<line x1="110" y1="40" x2="110" y2="480" class="s-muted" stroke-width="2"/>
+<text x="90" y="56" text-anchor="end" font-size="20" font-weight="700">2016</text>
+<circle cx="110" cy="50" r="8" class="f-paper"/>
+<text x="132" y="56" font-size="18" class="t-paper">RL²: adapt via recurrent state</text>
+<text x="90" y="122" text-anchor="end" font-size="20" font-weight="700">2017</text>
+<circle cx="110" cy="116" r="8" class="f-take"/>
+<text x="132" y="122" font-size="18" class="t-take">One-shot imitation from paired demos</text>
+<text x="132" y="146" font-size="18" class="t-take">Neural Task Programming</text>
+<text x="90" y="198" text-anchor="end" font-size="20" font-weight="700">2020</text>
+<circle cx="110" cy="192" r="8" class="f-muted"/>
+<text x="132" y="198" font-size="18" class="t-muted">GPT-3: few-shot prompting (language)</text>
+<text x="90" y="256" text-anchor="end" font-size="20" font-weight="700">2021</text>
+<circle cx="110" cy="250" r="8" class="f-paper"/>
+<text x="132" y="256" font-size="18" class="t-paper">RMA: infer the body's dynamics</text>
+<text x="90" y="314" text-anchor="end" font-size="20" font-weight="700">2022</text>
+<circle cx="110" cy="308" r="8" class="f-take"/>
+<text x="132" y="314" font-size="18" class="t-take">Code as Policies (LLM programs)</text>
+<text x="132" y="338" font-size="18" class="t-take">VIMA multimodal prompts</text>
+<text x="90" y="390" text-anchor="end" font-size="20" font-weight="700">2024</text>
+<circle cx="110" cy="384" r="8" class="f-take"/>
+<text x="132" y="390" font-size="18" class="t-take">ICRT · Instant Policy</text>
+<text x="90" y="448" text-anchor="end" font-size="20" font-weight="700">2026</text>
+<circle cx="110" cy="442" r="10" class="f-predict"/>
+<text x="132" y="448" font-size="18" class="t-take">S1 and GEN-1.5 demo prompts</text>
+<text x="132" y="474" font-size="18" class="t-predict" font-weight="700">This survey</text>
+<circle cx="40" cy="524" r="7" class="f-paper"/><text x="54" y="530" font-size="18" class="t-paper">from interaction (S3)</text>
+<circle cx="290" cy="524" r="7" class="f-take"/><text x="304" y="530" font-size="18" class="t-take">from teaching (S4)</text>
+</svg>
