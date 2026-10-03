@@ -1,0 +1,49 @@
+<svg class="rd-svg" viewBox="0 0 680 600" role="img" aria-labelledby="op-t op-d" xmlns="http://www.w3.org/2000/svg">
+  <title id="op-t">The paper in one picture</title>
+  <desc id="op-d">Top: a 0.5B RL-trained math expert scoring 39.8 percent teaches students of 1.5B, 3B, 7B and 14B parameters by on-policy distillation, and they peak at 53.0, 61.4, 72.7 and 77.7 percent. Middle: plotted against the square root of KL from the starting student, accuracy first rises in a straight line, then turns noisy and may peak and fall. Bottom: the peak follows a power law in which student error is roughly the teacher's error shrunk by a power of student size, and a bigger teacher at the same score is slightly worse.</desc>
+  <defs>
+    <marker id="op-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="f-muted"/>
+    </marker>
+  </defs>
+  <text x="20" y="30" font-size="19" font-weight="600">1. Train RL once, small. Distil it upward.</text>
+  <rect x="20" y="62" width="150" height="86" rx="10" class="f-take soft s-take" stroke-width="1.5"/>
+  <text x="95" y="96" text-anchor="middle" font-size="18" font-weight="600">0.5B RL expert</text>
+  <text x="95" y="126" text-anchor="middle" font-size="18" class="t-take">scores 39.8%</text>
+  <line x1="172" y1="105" x2="262" y2="105" class="s-muted" stroke-width="2" marker-end="url(#op-arrow)"/>
+  <text x="217" y="94" text-anchor="middle" font-size="16" class="t-muted">OPD</text>
+  <rect x="270" y="122" width="90" height="34" rx="8" class="f-paper soft s-paper" stroke-width="1.5"/>
+  <text x="315" y="145" text-anchor="middle" font-size="17">1.5B</text>
+  <rect x="370" y="104" width="90" height="52" rx="8" class="f-paper soft s-paper" stroke-width="1.5"/>
+  <text x="415" y="136" text-anchor="middle" font-size="17">3B</text>
+  <rect x="470" y="84" width="90" height="72" rx="8" class="f-paper soft s-paper" stroke-width="1.5"/>
+  <text x="515" y="126" text-anchor="middle" font-size="17">7B</text>
+  <rect x="570" y="60" width="90" height="96" rx="8" class="f-paper soft s-paper" stroke-width="1.5"/>
+  <text x="615" y="114" text-anchor="middle" font-size="17">14B</text>
+  <text x="315" y="182" text-anchor="middle" font-size="18" font-weight="700" class="t-paper">53.0</text>
+  <text x="415" y="182" text-anchor="middle" font-size="18" font-weight="700" class="t-paper">61.4</text>
+  <text x="515" y="182" text-anchor="middle" font-size="18" font-weight="700" class="t-paper">72.7</text>
+  <text x="615" y="182" text-anchor="middle" font-size="18" font-weight="700" class="t-paper">77.7</text>
+  <text x="270" y="206" font-size="16" class="t-muted">student peak accuracy (%), all above the teacher</text>
+  <line x1="20" y1="226" x2="660" y2="226" class="s-faint" stroke-width="1"/>
+  <text x="20" y="258" font-size="19" font-weight="600">2. Measure progress in √KL, not steps</text>
+  <line x1="80" y1="420" x2="640" y2="420" class="s-muted" stroke-width="1.5"/>
+  <line x1="80" y1="420" x2="80" y2="276" class="s-muted" stroke-width="1.5"/>
+  <text x="360" y="448" text-anchor="middle" font-size="17">d = √(token-mean reverse KL from the starting student)</text>
+  <text x="54" y="350" text-anchor="middle" font-size="17" transform="rotate(-90 54 350)">accuracy</text>
+  <rect x="80" y="276" width="270" height="144" class="f-hl soft"/>
+  <line x1="80" y1="400" x2="350" y2="314" class="s-paper" stroke-width="3.5"/>
+  <polyline points="350,314 372,306 392,300 410,303 430,296 452,298 470,304 492,301 515,310 540,316 565,322 590,328 620,333" class="s-paper f-none" stroke-width="2.5" stroke-dasharray="1 0"/>
+  <polygon points="430,284 434,293 444,293 436,299 439,308 430,302 421,308 424,299 416,293 426,293" class="f-predict"/>
+  <line x1="80" y1="352" x2="640" y2="352" class="s-take" stroke-width="1.8" stroke-dasharray="6 5"/>
+  <text x="636" y="370" text-anchor="end" font-size="16" class="t-take">teacher's own score</text>
+  <text x="96" y="300" font-size="17" font-weight="600">useful transfer:</text>
+  <text x="96" y="322" font-size="17">a straight line</text>
+  <text x="470" y="286" font-size="16" class="t-muted">noisy tail: saturate</text>
+  <text x="470" y="398" font-size="16" class="t-muted">or regress</text>
+  <line x1="20" y1="470" x2="660" y2="470" class="s-faint" stroke-width="1"/>
+  <text x="20" y="502" font-size="19" font-weight="600">3. The peak is predictable before training (Eq. 6)</text>
+  <rect x="20" y="518" width="640" height="68" rx="10" class="f-predict softer s-predict" stroke-width="1.5"/>
+  <text x="340" y="548" text-anchor="middle" font-size="18">student error ≈ 0.97 × (teacher error)<tspan dy="-8" font-size="13">0.95</tspan><tspan dy="8"> × N</tspan><tspan dy="5" font-size="13">S</tspan><tspan dy="-13" font-size="13">−0.30</tspan><tspan dy="8"> × N</tspan><tspan dy="5" font-size="13">T,eff</tspan><tspan dy="-13" font-size="13">+0.27</tspan></text>
+  <text x="340" y="574" text-anchor="middle" font-size="16" class="t-muted">bigger student: less error · same score, bigger teacher: slightly more</text>
+</svg>

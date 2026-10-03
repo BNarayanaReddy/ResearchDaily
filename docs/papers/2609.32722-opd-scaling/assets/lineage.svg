@@ -1,0 +1,37 @@
+<svg class="rd-svg" viewBox="0 0 640 536" role="img" aria-labelledby="ln-t ln-d" xmlns="http://www.w3.org/2000/svg">
+  <title id="ln-t">Lineage of this paper</title>
+  <desc id="ln-d">A vertical timeline: knowledge distillation 2015, sequence-level distillation 2016, LM scaling laws 2020, gold-versus-proxy laws in square-root KL 2023, on-policy distillation and weak-to-strong generalization 2024, distillation scaling laws and the zero-discount OPD recipe 2025, teacher-shift OPD rewards 2026, and this paper in 2026.</desc>
+  <line x1="110" y1="30" x2="110" y2="506" class="s-faint" stroke-width="3"/>
+  <text x="86" y="52" text-anchor="end" font-size="18" font-weight="600" class="t-muted">2015</text>
+  <circle cx="110" cy="46" r="7" class="f-muted"/>
+  <text x="134" y="48" font-size="18" font-weight="600">Knowledge distillation</text>
+  <text x="134" y="72" font-size="16" class="t-muted">Hinton et al.</text>
+  <text x="86" y="114" text-anchor="end" font-size="18" font-weight="600" class="t-muted">2016</text>
+  <circle cx="110" cy="108" r="7" class="f-muted"/>
+  <text x="134" y="110" font-size="18" font-weight="600">Sequence-level distillation</text>
+  <text x="134" y="134" font-size="16" class="t-muted">Kim &amp; Rush</text>
+  <text x="86" y="176" text-anchor="end" font-size="18" font-weight="600" class="t-muted">2020</text>
+  <circle cx="110" cy="170" r="7" class="f-muted"/>
+  <text x="134" y="172" font-size="18" font-weight="600">Scaling laws for LMs</text>
+  <text x="134" y="196" font-size="16" class="t-muted">Kaplan et al.</text>
+  <text x="86" y="238" text-anchor="end" font-size="18" font-weight="600" class="t-muted">2023</text>
+  <circle cx="110" cy="232" r="10" class="f-paper"/>
+  <text x="134" y="234" font-size="18" font-weight="600" class="t-paper">Gold vs proxy laws in √KL</text>
+  <text x="134" y="258" font-size="16" class="t-muted">Gao et al.: the frame this paper borrows</text>
+  <text x="86" y="300" text-anchor="end" font-size="18" font-weight="600" class="t-muted">2024</text>
+  <circle cx="110" cy="294" r="7" class="f-muted"/>
+  <text x="134" y="296" font-size="18" font-weight="600">On-policy distillation; weak-to-strong</text>
+  <text x="134" y="320" font-size="16" class="t-muted">GKD, MiniLLM; Burns et al.</text>
+  <text x="86" y="362" text-anchor="end" font-size="18" font-weight="600" class="t-muted">2025</text>
+  <circle cx="110" cy="356" r="7" class="f-muted"/>
+  <text x="134" y="358" font-size="18" font-weight="600">Distillation scaling laws; zero-discount OPD</text>
+  <text x="134" y="382" font-size="16" class="t-muted">Busbridge et al.; Thinking Machines</text>
+  <text x="86" y="424" text-anchor="end" font-size="18" font-weight="600" class="t-muted">2026</text>
+  <circle cx="110" cy="418" r="7" class="f-muted"/>
+  <text x="134" y="420" font-size="18" font-weight="600">Teacher-shift OPD rewards</text>
+  <text x="134" y="444" font-size="16" class="t-muted">OPD², Direct-OPD, W2S-OPD → Delta-OPD</text>
+  <text x="86" y="486" text-anchor="end" font-size="18" font-weight="600" class="t-muted">2026</text>
+  <circle cx="110" cy="480" r="10" class="f-take"/>
+  <text x="134" y="482" font-size="18" font-weight="600" class="t-take">This paper: OPD scaling laws</text>
+  <text x="134" y="506" font-size="16" class="t-muted">√KL ruler + joint peak law</text>
+</svg>

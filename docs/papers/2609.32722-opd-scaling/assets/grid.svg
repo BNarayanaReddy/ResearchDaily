@@ -1,0 +1,80 @@
+<svg class="rd-svg" viewBox="0 0 660 464" role="img" aria-labelledby="gr-t gr-d" xmlns="http://www.w3.org/2000/svg">
+  <title id="gr-t">Peak gold score for all 25 teacher-student pairs</title>
+  <desc id="gr-d">A 5 by 5 grid of peak held-out accuracy. Rows are student sizes from 0.5B to 14B, columns teacher sizes. Larger students score higher in every column. For 7B and 14B students the biggest teacher is best; for the 0.5B student the 3B teacher is best and bigger teachers do worse.</desc>
+  <text x="390.0" y="30.0" text-anchor="middle" font-size="18" class="t-muted">Teacher size →</text>
+  <text x="28.0" y="225.0" text-anchor="middle" font-size="18" class="t-muted" transform="rotate(-90 28 225.0)">Student size →</text>
+  <text x="198.0" y="58.0" text-anchor="middle" font-size="18" font-weight="600">0.5B</text>
+  <text x="294.0" y="58.0" text-anchor="middle" font-size="18" font-weight="600">1.5B</text>
+  <text x="390.0" y="58.0" text-anchor="middle" font-size="18" font-weight="600">3B</text>
+  <text x="486.0" y="58.0" text-anchor="middle" font-size="18" font-weight="600">7B</text>
+  <text x="582.0" y="58.0" text-anchor="middle" font-size="18" font-weight="600">14B</text>
+  <text x="138.0" y="107.0" text-anchor="end" font-size="18" font-weight="600">0.5B</text>
+  <rect x="152" y="72" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.15"/>
+  <rect x="152" y="72" width="92" height="58" rx="6" class="f-none s-muted" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="198.0" y="108.0" text-anchor="middle" font-size="20">40.1</text>
+  <rect x="248" y="72" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.16"/>
+  <text x="294.0" y="108.0" text-anchor="middle" font-size="20">40.6</text>
+  <rect x="344" y="72" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.16"/>
+  <rect x="345" y="73" width="90" height="56" rx="6" class="f-none s-predict" stroke-width="3"/>
+  <text x="390.0" y="108.0" text-anchor="middle" font-size="20" font-weight="700">40.8</text>
+  <rect x="440" y="72" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.14"/>
+  <text x="486.0" y="108.0" text-anchor="middle" font-size="20">39.0</text>
+  <rect x="536" y="72" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.13"/>
+  <text x="582.0" y="108.0" text-anchor="middle" font-size="20">37.7</text>
+  <text x="138.0" y="169.0" text-anchor="end" font-size="18" font-weight="600">1.5B</text>
+  <rect x="152" y="134" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.28"/>
+  <text x="198.0" y="170.0" text-anchor="middle" font-size="20">53.0</text>
+  <rect x="248" y="134" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.39"/>
+  <rect x="248" y="134" width="92" height="58" rx="6" class="f-none s-muted" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <rect x="249" y="135" width="90" height="56" rx="6" class="f-none s-predict" stroke-width="3"/>
+  <text x="294.0" y="170.0" text-anchor="middle" font-size="20" font-weight="700">64.0</text>
+  <rect x="344" y="134" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.39"/>
+  <text x="390.0" y="170.0" text-anchor="middle" font-size="20">63.9</text>
+  <rect x="440" y="134" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.38"/>
+  <text x="486.0" y="170.0" text-anchor="middle" font-size="20">62.9</text>
+  <rect x="536" y="134" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.38"/>
+  <text x="582.0" y="170.0" text-anchor="middle" font-size="20">62.7</text>
+  <text x="138.0" y="231.0" text-anchor="end" font-size="18" font-weight="600">3B</text>
+  <rect x="152" y="196" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.36"/>
+  <text x="198.0" y="232.0" text-anchor="middle" font-size="20">61.4</text>
+  <rect x="248" y="196" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.46"/>
+  <text x="294.0" y="232.0" text-anchor="middle" font-size="20">70.7</text>
+  <rect x="344" y="196" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.49"/>
+  <rect x="344" y="196" width="92" height="58" rx="6" class="f-none s-muted" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <rect x="345" y="197" width="90" height="56" rx="6" class="f-none s-predict" stroke-width="3"/>
+  <text x="390.0" y="232.0" text-anchor="middle" font-size="20" font-weight="700">73.6</text>
+  <rect x="440" y="196" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.48"/>
+  <text x="486.0" y="232.0" text-anchor="middle" font-size="20">72.9</text>
+  <rect x="536" y="196" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.48"/>
+  <text x="582.0" y="232.0" text-anchor="middle" font-size="20">73.0</text>
+  <text x="138.0" y="293.0" text-anchor="end" font-size="18" font-weight="600">7B</text>
+  <rect x="152" y="258" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.48"/>
+  <text x="198.0" y="294.0" text-anchor="middle" font-size="20">72.7</text>
+  <rect x="248" y="258" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.53"/>
+  <text x="294.0" y="294.0" text-anchor="middle" font-size="20">77.5</text>
+  <rect x="344" y="258" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.55"/>
+  <text x="390.0" y="294.0" text-anchor="middle" font-size="20">80.3</text>
+  <rect x="440" y="258" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.57"/>
+  <rect x="440" y="258" width="92" height="58" rx="6" class="f-none s-muted" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="486.0" y="294.0" text-anchor="middle" font-size="20">81.6</text>
+  <rect x="536" y="258" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.57"/>
+  <rect x="537" y="259" width="90" height="56" rx="6" class="f-none s-predict" stroke-width="3"/>
+  <text x="582.0" y="294.0" text-anchor="middle" font-size="20" font-weight="700">81.9</text>
+  <text x="138.0" y="355.0" text-anchor="end" font-size="18" font-weight="600">14B</text>
+  <rect x="152" y="320" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.53"/>
+  <text x="198.0" y="356.0" text-anchor="middle" font-size="20">77.7</text>
+  <rect x="248" y="320" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.57"/>
+  <text x="294.0" y="356.0" text-anchor="middle" font-size="20">82.1</text>
+  <rect x="344" y="320" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.59"/>
+  <text x="390.0" y="356.0" text-anchor="middle" font-size="20">83.6</text>
+  <rect x="440" y="320" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.60"/>
+  <text x="486.0" y="356.0" text-anchor="middle" font-size="20">85.3</text>
+  <rect x="536" y="320" width="92" height="58" rx="6" class="f-paper" fill-opacity="0.62"/>
+  <rect x="536" y="320" width="92" height="58" rx="6" class="f-none s-muted" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <rect x="537" y="321" width="90" height="56" rx="6" class="f-none s-predict" stroke-width="3"/>
+  <text x="582.0" y="356.0" text-anchor="middle" font-size="20" font-weight="700">87.3</text>
+  <rect x="150" y="398" width="26" height="20" rx="4" class="f-none s-predict" stroke-width="3"/>
+  <text x="186.0" y="414.0" text-anchor="start" font-size="17">best teacher for this student</text>
+  <rect x="150" y="426" width="26" height="20" rx="4" class="f-none s-muted" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="186.0" y="442.0" text-anchor="start" font-size="17">same-base (teacher = RL'd copy of student)</text>
+</svg>

@@ -1,0 +1,51 @@
+<svg class="rd-svg" viewBox="0 0 660 520" role="img" aria-labelledby="sc-t sc-d" xmlns="http://www.w3.org/2000/svg">
+  <title id="sc-t">Where the evidence lives</title>
+  <desc id="sc-d">A map with student size on the horizontal axis and teacher size on the vertical axis, both on log scales from 0.5B to 100B. The tested region is a square from 0.5B to 14B on both axes, filled with a 5 by 5 grid of dots. Below the diagonal teachers are smaller than students (weak-to-strong); above it, larger (strong-to-weak). Everything beyond 14B is untested.</desc>
+  <line x1="110" y1="440" x2="640" y2="440" class="s-muted" stroke-width="1.5"/>
+  <line x1="110" y1="440" x2="110" y2="20" class="s-muted" stroke-width="1.5"/>
+  <rect x="112" y="181" width="257" height="257" class="f-code soft s-code" stroke-width="1.5"/>
+  <line x1="110" y1="440" x2="530" y2="20" class="s-faint" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <g class="f-code">
+    <circle cx="130" cy="420" r="6"/>
+    <circle cx="130" cy="348" r="6"/>
+    <circle cx="130" cy="303" r="6"/>
+    <circle cx="130" cy="248" r="6"/>
+    <circle cx="130" cy="203" r="6"/>
+    <circle cx="202" cy="420" r="6"/>
+    <circle cx="202" cy="348" r="6"/>
+    <circle cx="202" cy="303" r="6"/>
+    <circle cx="202" cy="248" r="6"/>
+    <circle cx="202" cy="203" r="6"/>
+    <circle cx="247" cy="420" r="6"/>
+    <circle cx="247" cy="348" r="6"/>
+    <circle cx="247" cy="303" r="6"/>
+    <circle cx="247" cy="248" r="6"/>
+    <circle cx="247" cy="203" r="6"/>
+    <circle cx="302" cy="420" r="6"/>
+    <circle cx="302" cy="348" r="6"/>
+    <circle cx="302" cy="303" r="6"/>
+    <circle cx="302" cy="248" r="6"/>
+    <circle cx="302" cy="203" r="6"/>
+    <circle cx="347" cy="420" r="6"/>
+    <circle cx="347" cy="348" r="6"/>
+    <circle cx="347" cy="303" r="6"/>
+    <circle cx="347" cy="248" r="6"/>
+    <circle cx="347" cy="203" r="6"/>
+  </g>
+  <text x="130" y="466" text-anchor="middle" font-size="16" class="t-muted">0.5B</text>
+  <text x="247" y="466" text-anchor="middle" font-size="16" class="t-muted">3B</text>
+  <text x="347" y="466" text-anchor="middle" font-size="16" class="t-muted">14B</text>
+  <text x="475" y="466" text-anchor="middle" font-size="16" class="t-muted">100B</text>
+  <text x="375" y="500" text-anchor="middle" font-size="18">student size (log)</text>
+  <text x="100" y="425" text-anchor="end" font-size="16" class="t-muted">0.5B</text>
+  <text x="100" y="308" text-anchor="end" font-size="16" class="t-muted">3B</text>
+  <text x="100" y="208" text-anchor="end" font-size="16" class="t-muted">14B</text>
+  <text x="100" y="80" text-anchor="end" font-size="16" class="t-muted">100B</text>
+  <text x="30" y="240" text-anchor="middle" font-size="18" transform="rotate(-90 30 240)">teacher size (log)</text>
+  <text x="377" y="370" text-anchor="start" font-size="17" font-weight="600" class="t-code">weak → strong</text>
+  <text x="377" y="394" text-anchor="start" font-size="16" class="t-code">(teacher smaller)</text>
+  <text x="120" y="169" text-anchor="start" font-size="17" font-weight="600" class="t-code">tested: 0.5–14B Qwen2.5, math, 1 seed</text>
+  <text x="430" y="70" text-anchor="middle" font-size="17" class="t-predict">untested: frontier scale,</text>
+  <text x="430" y="94" text-anchor="middle" font-size="17" class="t-predict">other families, other tasks</text>
+  <text x="187" y="232" text-anchor="start" font-size="16" class="t-muted">strong → weak</text>
+</svg>

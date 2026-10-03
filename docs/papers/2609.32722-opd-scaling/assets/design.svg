@@ -1,0 +1,42 @@
+<svg class="rd-svg" viewBox="0 0 660 500" role="img" aria-labelledby="ds-t ds-d" xmlns="http://www.w3.org/2000/svg">
+  <title id="ds-t">Cold start and bootstrapping results</title>
+  <desc id="ds-d">Top: an off-policy SFT cold start costs a 3B student 6.6 points, a 7B 15.7 and a 14B 19.4. Bottom: bootstrapped chains through intermediate sizes always peak slightly below direct distillation from the 0.5B expert at 3B, 7B and 14B.</desc>
+  <text x="20.0" y="32.0" text-anchor="start" font-size="19" font-weight="600">A. Cost of a 1-epoch SFT cold start (0.5B teacher)</text>
+  <text x="118.0" y="81.0" text-anchor="end" font-size="17">student 3B</text>
+  <rect x="130" y="62" width="132.0" height="28" rx="4" class="f-predict soft s-predict" stroke-width="1.5"/>
+  <text x="270.0" y="83.0" text-anchor="start" font-size="17" font-weight="600">−6.6 pts</text>
+  <text x="118.0" y="131.0" text-anchor="end" font-size="17">student 7B</text>
+  <rect x="130" y="112" width="314.0" height="28" rx="4" class="f-predict soft s-predict" stroke-width="1.5"/>
+  <text x="452.0" y="133.0" text-anchor="start" font-size="17" font-weight="600">−15.7 pts</text>
+  <text x="118.0" y="181.0" text-anchor="end" font-size="17">student 14B</text>
+  <rect x="130" y="162" width="388.0" height="28" rx="4" class="f-predict soft s-predict" stroke-width="1.5"/>
+  <text x="526.0" y="183.0" text-anchor="start" font-size="17" font-weight="600">−19.4 pts</text>
+  <text x="20.0" y="238.0" text-anchor="start" font-size="19" font-weight="600">B. Bootstrapped chain vs direct OPD from the 0.5B expert</text>
+  <line x1="173.6" y1="256" x2="173.6" y2="414" class="s-faint" stroke-width="0.8"/>
+  <text x="173.6" y="436.0" text-anchor="middle" font-size="16" class="t-muted">60</text>
+  <line x1="282.7" y1="256" x2="282.7" y2="414" class="s-faint" stroke-width="0.8"/>
+  <text x="282.7" y="436.0" text-anchor="middle" font-size="16" class="t-muted">65</text>
+  <line x1="391.8" y1="256" x2="391.8" y2="414" class="s-faint" stroke-width="0.8"/>
+  <text x="391.8" y="436.0" text-anchor="middle" font-size="16" class="t-muted">70</text>
+  <line x1="500.9" y1="256" x2="500.9" y2="414" class="s-faint" stroke-width="0.8"/>
+  <text x="500.9" y="436.0" text-anchor="middle" font-size="16" class="t-muted">75</text>
+  <line x1="610.0" y1="256" x2="610.0" y2="414" class="s-faint" stroke-width="0.8"/>
+  <text x="610.0" y="436.0" text-anchor="middle" font-size="16" class="t-muted">80</text>
+  <text x="370.0" y="462.0" text-anchor="middle" font-size="17">peak gold score (%), Vanilla-OPD</text>
+  <text x="118.0" y="290.0" text-anchor="end" font-size="17">student 3B</text>
+  <line x1="182.4" y1="284" x2="204.2" y2="284" class="s-muted" stroke-width="2"/>
+  <circle cx="182.4" cy="284" r="8" class="f-take"/>
+  <circle cx="204.2" cy="284" r="8" class="f-paper"/>
+  <text x="118.0" y="340.0" text-anchor="end" font-size="17">student 7B</text>
+  <line x1="391.8" y1="334" x2="450.7" y2="334" class="s-muted" stroke-width="2"/>
+  <rect x="391.8" y="326" width="28.4" height="16" rx="8" class="f-take soft s-take" stroke-width="1.5"/>
+  <circle cx="450.7" cy="334" r="8" class="f-paper"/>
+  <text x="118.0" y="390.0" text-anchor="end" font-size="17">student 14B</text>
+  <line x1="540.2" y1="384" x2="559.8" y2="384" class="s-muted" stroke-width="2"/>
+  <circle cx="540.2" cy="384" r="8" class="f-take"/>
+  <circle cx="559.8" cy="384" r="8" class="f-paper"/>
+  <circle cx="140" cy="480" r="7" class="f-take"/>
+  <text x="154.0" y="486.0" text-anchor="start" font-size="16">via chain (range if several)</text>
+  <circle cx="430" cy="480" r="7" class="f-paper"/>
+  <text x="444.0" y="486.0" text-anchor="start" font-size="16">direct from 0.5B</text>
+</svg>

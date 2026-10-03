@@ -1,0 +1,46 @@
+<svg class="rd-svg" viewBox="0 0 680 420" role="img" aria-labelledby="oo-t oo-d" xmlns="http://www.w3.org/2000/svg">
+  <title id="oo-t">Off-policy versus on-policy distillation</title>
+  <desc id="oo-d">Top: off-policy distillation, where the teacher writes a whole solution and the student is trained to copy it. Bottom: on-policy distillation, where the student writes its own solution and the teacher grades every token, giving a positive reward to tokens the teacher likes more than the student and a negative one to tokens it likes less.</desc>
+  <defs>
+    <marker id="oo-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="f-muted"/>
+    </marker>
+  </defs>
+  <text x="20" y="30" font-size="19" font-weight="600">Off-policy (SFT on teacher samples, Eq. 4)</text>
+  <rect x="20" y="48" width="120" height="50" rx="8" class="f-take soft s-take" stroke-width="1.5"/>
+  <text x="80" y="80" text-anchor="middle" font-size="18">teacher</text>
+  <line x1="142" y1="73" x2="188" y2="73" class="s-muted" stroke-width="1.8" marker-end="url(#oo-arrow)"/>
+  <rect x="192" y="52" width="66" height="42" rx="6" class="f-take softer s-take" stroke-width="1"/>
+  <text x="225" y="80" text-anchor="middle" font-size="17" class="mono">2x</text>
+  <rect x="262" y="52" width="66" height="42" rx="6" class="f-take softer s-take" stroke-width="1"/>
+  <text x="295" y="80" text-anchor="middle" font-size="17" class="mono">=</text>
+  <rect x="332" y="52" width="66" height="42" rx="6" class="f-take softer s-take" stroke-width="1"/>
+  <text x="365" y="80" text-anchor="middle" font-size="17" class="mono">10</text>
+  <line x1="402" y1="73" x2="448" y2="73" class="s-muted" stroke-width="1.8" marker-end="url(#oo-arrow)"/>
+  <rect x="452" y="48" width="208" height="50" rx="8" class="f-paper soft s-paper" stroke-width="1.5"/>
+  <text x="556" y="80" text-anchor="middle" font-size="18">student copies it</text>
+  <text x="20" y="128" font-size="16" class="t-muted">The student only ever sees teacher-written prefixes. At test time it reads its own.</text>
+  <line x1="20" y1="150" x2="660" y2="150" class="s-faint" stroke-width="1"/>
+  <text x="20" y="186" font-size="19" font-weight="600">On-policy (OPD, Eq. 2)</text>
+  <rect x="20" y="204" width="120" height="50" rx="8" class="f-paper soft s-paper" stroke-width="1.5"/>
+  <text x="80" y="236" text-anchor="middle" font-size="18">student</text>
+  <line x1="142" y1="229" x2="188" y2="229" class="s-muted" stroke-width="1.8" marker-end="url(#oo-arrow)"/>
+  <rect x="192" y="208" width="66" height="42" rx="6" class="f-paper softer s-paper" stroke-width="1"/>
+  <text x="225" y="236" text-anchor="middle" font-size="17" class="mono">2x</text>
+  <rect x="262" y="208" width="66" height="42" rx="6" class="f-paper softer s-paper" stroke-width="1"/>
+  <text x="295" y="236" text-anchor="middle" font-size="17" class="mono">=</text>
+  <rect x="332" y="208" width="66" height="42" rx="6" class="f-paper softer s-paper" stroke-width="1"/>
+  <text x="365" y="236" text-anchor="middle" font-size="17" class="mono">12</text>
+  <line x1="225" y1="252" x2="225" y2="290" class="s-muted" stroke-width="1.5" marker-start="url(#oo-arrow)"/>
+  <line x1="295" y1="252" x2="295" y2="290" class="s-muted" stroke-width="1.5" marker-start="url(#oo-arrow)"/>
+  <line x1="365" y1="252" x2="365" y2="290" class="s-muted" stroke-width="1.5" marker-start="url(#oo-arrow)"/>
+  <rect x="172" y="292" width="246" height="44" rx="8" class="f-take soft s-take" stroke-width="1.5"/>
+  <text x="295" y="321" text-anchor="middle" font-size="18">teacher grades each token</text>
+  <text x="225" y="364" text-anchor="middle" font-size="18" class="t-code" font-weight="700">+0.1</text>
+  <text x="295" y="364" text-anchor="middle" font-size="18" class="t-code" font-weight="700">+0.0</text>
+  <text x="365" y="364" text-anchor="middle" font-size="18" class="t-predict" font-weight="700">−2.3</text>
+  <text x="420" y="228" font-size="17">reward r = log πT − log πθ</text>
+  <text x="420" y="254" font-size="16" class="t-muted">for the token the student</text>
+  <text x="420" y="276" font-size="16" class="t-muted">actually sampled</text>
+  <text x="20" y="404" font-size="16" class="t-muted">Dense, per-token feedback on the student's own mistakes ("12" gets pushed down).</text>
+</svg>

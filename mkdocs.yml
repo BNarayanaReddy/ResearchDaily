@@ -87,6 +87,7 @@ plugins:
         - Reasoning
         - Efficiency
         - Fine-tuning
+        - Distillation
         - Optimization
         - Theory
         - Interpretability
