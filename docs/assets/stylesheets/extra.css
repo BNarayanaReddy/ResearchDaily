@@ -2,11 +2,12 @@
    Research Daily: theme layer on top of Material for MkDocs.
 
    Design rules (keep them when editing):
-   1. Colour means voice. Each callout colour belongs to exactly one voice:
-      paper = blue, code = green, take = violet (dashed: it is opinion),
-      predict = amber, bridge = teal, deep dive = slate.
-   2. The highlighter is the one loud element, and it only ever means
-      "this is on the fast path".
+   1. A lesson is a click-through: one question and one drawing per screen,
+      with a step rail that reveals one short step at a time.
+   2. Colour means something: blue = data and the paper's facts, violet =
+      learned parts, green = good/correct, amber = the thing to look at now,
+      teal = speech, red = a problem. The highlighter yellow marks progress
+      and the quick tour.
    3. Everything else stays quiet: ink on paper.
    ===================================================================== */
 
@@ -74,146 +75,9 @@
 .rd-muted { color: var(--md-default-fg-color--light); }
 .rd-small { font-size: 0.72rem; }
 
-/* Part dividers: `## Part II: What and how { .rd-part }` */
-.md-typeset h2.rd-part {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--md-default-fg-color--light);
-  border-top: 1px solid var(--rd-rule);
-  padding-top: 1.2em;
-  margin-top: 3.4em;
-}
 
-/* ---------- fast path highlighter ------------------------------------ */
-.md-typeset .rd-fast .rd-hl,
-.rd-hl-inline {
-  background: linear-gradient(
-    transparent 58%, var(--rd-hl-soft) 58%, var(--rd-hl-soft) 92%, transparent 92%
-  );
-  padding: 0 0.12em;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-}
-
-/* ---------- voice callouts ------------------------------------------- */
-/* Emoji markers replace Material's icon masks so the voice is legible
-   even without colour. */
-.md-typeset .admonition,
-.md-typeset details {
-  font-size: 0.8rem;
-  border-width: 0.06rem;
-  box-shadow: none;
-}
-
-.md-typeset :is(.paper, .code, .take, .predict, .bridge, .deep, .answer) > :is(.admonition-title, summary)::before {
-  background-color: transparent;
-  -webkit-mask-image: none;
-  mask-image: none;
-  width: 1.1rem;
-  height: 1.1rem;
-  font-size: 0.82rem;
-  line-height: 1.1rem;
-  text-align: center;
-}
-
-.md-typeset :is(.admonition, details).paper   { border-color: var(--rd-paper); }
-.md-typeset :is(.admonition, details).code    { border-color: var(--rd-code); }
-.md-typeset :is(.admonition, details).take    { border-color: var(--rd-take); border-style: dashed; }
-.md-typeset :is(.admonition, details).predict { border-color: var(--rd-predict); }
-.md-typeset :is(.admonition, details).bridge  { border-color: var(--rd-bridge); }
-.md-typeset :is(.admonition, details).deep    { border-color: var(--rd-deep); }
-.md-typeset :is(.admonition, details).answer  { border-color: var(--rd-code); }
-
-.md-typeset .paper   > :is(.admonition-title, summary) { background-color: color-mix(in srgb, var(--rd-paper) 11%, transparent); }
-.md-typeset .code    > :is(.admonition-title, summary) { background-color: color-mix(in srgb, var(--rd-code) 11%, transparent); }
-.md-typeset .take    > :is(.admonition-title, summary) { background-color: color-mix(in srgb, var(--rd-take) 10%, transparent); }
-.md-typeset .predict > :is(.admonition-title, summary) { background-color: color-mix(in srgb, var(--rd-predict) 12%, transparent); }
-.md-typeset .bridge  > :is(.admonition-title, summary) { background-color: color-mix(in srgb, var(--rd-bridge) 11%, transparent); }
-.md-typeset .deep    > :is(.admonition-title, summary) { background-color: color-mix(in srgb, var(--rd-deep) 11%, transparent); }
-.md-typeset .answer  > :is(.admonition-title, summary) { background-color: color-mix(in srgb, var(--rd-code) 9%, transparent); }
-
-.md-typeset .paper   > :is(.admonition-title, summary)::before { content: "📄"; }
-.md-typeset .code    > :is(.admonition-title, summary)::before { content: "💻"; }
-.md-typeset .take    > :is(.admonition-title, summary)::before { content: "🧠"; }
-.md-typeset .predict > :is(.admonition-title, summary)::before { content: "⏸️"; }
-.md-typeset .bridge  > :is(.admonition-title, summary)::before { content: "🎙️"; }
-.md-typeset .deep    > :is(.admonition-title, summary)::before { content: "🔬"; }
-.md-typeset .answer  > :is(.admonition-title, summary)::before { content: "✅"; }
-
-.md-typeset .paper   > :is(.admonition-title, summary)::after,
-.md-typeset .code    > :is(.admonition-title, summary)::after,
-.md-typeset .take    > :is(.admonition-title, summary)::after,
-.md-typeset .predict > :is(.admonition-title, summary)::after,
-.md-typeset .bridge  > :is(.admonition-title, summary)::after,
-.md-typeset .deep    > :is(.admonition-title, summary)::after,
-.md-typeset .answer  > :is(.admonition-title, summary)::after {
-  color: var(--md-default-fg-color--light);
-}
-
-/* Curiosity gap at the end of a section: `{ .rd-next }` on a paragraph */
-.md-typeset p.rd-next {
-  font-style: italic;
-  color: var(--md-default-fg-color--light);
-  border-left: 2px solid var(--rd-hl);
-  padding-left: 0.8em;
-  margin-top: 1.6em;
-}
-
-/* ---------- paper card ----------------------------------------------- */
-.rd-card {
-  border: 1px solid var(--rd-rule);
-  border-radius: 6px;
-  padding: 1rem 1.2rem 1.1rem;
-  margin: 0 0 2rem;
-  background: var(--rd-surface);
-  font-size: 0.78rem;
-}
-.rd-card__idea {
-  font-size: 0.95rem;
-  line-height: 1.55;
-  margin: 0 0 0.9rem;
-  font-weight: 500;
-}
-.rd-card__facts {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 0.25rem 1rem;
-  margin: 0;
-}
-.md-typeset .rd-card__facts dt { color: var(--md-default-fg-color--light); font-weight: 500; }
-.md-typeset .rd-card__facts dd { margin: 0; }
-.rd-card__label { font-weight: 600; margin: 1rem 0 0.3rem; }
-.md-typeset .rd-card ul,
-.md-typeset .rd-card ol { margin: 0.2rem 0 0.4rem; }
-.md-typeset .rd-card li { margin: 0.1rem 0; }
-.md-typeset .rd-card__prereqs ul { list-style: none; margin-left: 0; padding-left: 0; }
-.rd-card__prereqs input { accent-color: var(--rd-code); margin-right: 0.35rem; }
-.rd-fastpath ol:empty,
-.rd-fastpath:has(ol:empty) { display: none; }
-
-.rd-done {
-  margin-top: 0.9rem;
-  font: inherit;
-  font-size: 0.74rem;
-  padding: 0.3rem 0.8rem;
-  border: 1px solid var(--rd-rule);
-  border-radius: 4px;
-  background: transparent;
-  color: var(--md-default-fg-color);
-  cursor: pointer;
-}
-.rd-done[aria-pressed="true"] {
-  border-color: var(--rd-code);
-  color: var(--rd-code);
-}
-.rd-done[aria-pressed="true"]::before { content: "✓ "; }
-.rd-done:focus-visible { outline: 2px solid var(--md-accent-fg-color); outline-offset: 2px; }
-
-@media screen and (max-width: 30em) {
-  .rd-card__facts { grid-template-columns: 1fr; }
-  .md-typeset .rd-card__facts dt { margin-top: 0.4rem; }
-}
+:root, [data-md-color-scheme="default"] { --rd-bad: #c2410c; }
+[data-md-color-scheme="slate"] { --rd-bad: #f08a5d; }
 
 /* difficulty dots */
 .rd-dots { display: inline-flex; gap: 3px; vertical-align: middle; margin-right: 0.35rem; }
@@ -277,34 +141,6 @@
 .rd-tile.is-done .rd-tile__done { display: block; }
 .rd-tile.is-done .rd-tile__done::before { content: "✓ "; }
 
-/* ---------- figures -------------------------------------------------- */
-.md-typeset figure.rd-fig {
-  /* Material sets figures to width: fit-content, which collapses inline SVG */
-  margin: 1.6rem 0;
-  width: 100%;
-  max-width: 100%;
-  display: block;
-}
-.md-typeset figure.rd-fig .mermaid { display: flex; justify-content: center; }
-.md-typeset figure.rd-fig > svg,
-.md-typeset figure.rd-fig > img,
-.md-typeset figure.rd-fig .rd-svg-wrap > svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-width: 44rem;
-  margin: 0 auto;
-}
-.md-typeset figure.rd-fig figcaption {
-  font-size: 0.74rem;
-  line-height: 1.55;
-  color: var(--md-default-fg-color--light);
-  max-width: 42rem;
-  margin: 0.7rem auto 0;
-  text-align: left;
-  font-style: normal;
-}
-.md-typeset figure.rd-fig figcaption strong { color: var(--md-default-fg-color); }
 
 /* Theme-aware SVG helpers: use these classes inside hand-drawn SVGs so
    they follow the light/dark toggle. (CSS variables do not work in SVG
@@ -340,65 +176,6 @@
 .rd-svg .soft { fill-opacity: 0.16; }
 .rd-svg .softer { fill-opacity: 0.08; }
 
-/* ---------- interactive widgets -------------------------------------- */
-.rd-widget {
-  border: 1px solid var(--rd-rule);
-  border-radius: 6px;
-  padding: 1rem;
-  margin: 1.4rem 0 0.4rem;
-  background: var(--rd-surface);
-  font-size: 0.78rem;
-}
-.rd-widget__title { font-weight: 650; margin: 0 0 0.6rem; font-size: 0.86rem; }
-.rd-widget__controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem 1.4rem;
-  align-items: center;
-  margin-bottom: 0.8rem;
-}
-.rd-widget label { display: inline-flex; align-items: center; gap: 0.5rem; }
-.rd-widget input[type="range"] { accent-color: var(--rd-predict); width: min(16rem, 60vw); }
-.rd-widget button,
-.rd-widget select {
-  font: inherit;
-  padding: 0.25rem 0.7rem;
-  border-radius: 4px;
-  border: 1px solid var(--rd-rule);
-  background: var(--md-default-bg-color);
-  color: var(--md-default-fg-color);
-  cursor: pointer;
-}
-.rd-widget button[aria-pressed="true"] {
-  border-color: var(--rd-paper);
-  color: var(--rd-paper);
-}
-.rd-widget button:focus-visible,
-.rd-widget input:focus-visible,
-.rd-widget select:focus-visible { outline: 2px solid var(--md-accent-fg-color); outline-offset: 2px; }
-.rd-widget canvas,
-.rd-widget svg { max-width: 100%; display: block; }
-.rd-widget output,
-.rd-widget .mono { font-family: var(--md-code-font-family); font-size: 0.74rem; }
-.rd-widget__readout { margin-top: 0.6rem; color: var(--md-default-fg-color--light); }
-.rd-widget-caption {
-  font-size: 0.74rem;
-  color: var(--md-default-fg-color--light);
-  margin: 0.4rem 0 1.6rem;
-  max-width: 42rem;
-}
-
-/* ---------- tables and scrolling ------------------------------------ */
-.md-typeset table:not([class]) { font-size: 0.74rem; }
-.md-typeset table:not([class]) th { font-weight: 650; }
-.md-typeset .rd-wide { overflow-x: auto; }
-
-/* Mermaid: keep diagrams from overflowing on phones */
-.md-typeset .mermaid { overflow-x: auto; }
-
-@media (prefers-reduced-motion: reduce) {
-  * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
-}
 
 /* Programming ligatures in JetBrains Mono turn token syntax like <|en|> into
    triangle glyphs, which misleads readers of papers about tokens. Show the
@@ -413,3 +190,197 @@
   font-variant-ligatures: none;
   font-feature-settings: "liga" 0, "calt" 0;
 }
+
+.rd-svg .f-bad { fill: var(--rd-bad); }
+.rd-svg .s-bad { stroke: var(--rd-bad); }
+.rd-svg .t-bad { fill: var(--rd-bad); }
+.rd-svg .t-ink { fill: var(--md-default-fg-color); }
+.rd-svg .rdx-dim { opacity: 0.22; }
+.rd-svg .rdx-hl rect, .rd-svg rect.rdx-hl { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--rd-predict) 55%, transparent)); }
+
+/* =====================================================================
+   Explainer: click-through lessons (explainer.js)
+   ===================================================================== */
+body:has(.rdx) .md-grid { max-width: 82rem; }
+body:has(.rdx) .md-content__inner > .md-tags { margin-bottom: 0.2rem; }
+
+.rdx-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem 0.6rem;
+  padding: 0.45rem 0; font-size: 0.68rem;
+  position: sticky; top: 2.4rem; z-index: 3; background: var(--md-default-bg-color);
+}
+.rdx-spacer { flex: 1; }
+.rdx-chapters, .rdx-modebtn, .rdx-allbtn {
+  font: inherit; color: inherit; background: transparent; cursor: pointer;
+  border: 1px solid var(--rd-rule); border-radius: 999px; padding: 0.28rem 0.75rem;
+}
+.rdx-chapters { max-width: min(24rem, 100%); background: var(--md-default-bg-color); }
+.rdx-count { font-family: var(--md-code-font-family); color: var(--md-default-fg-color--light); }
+.rdx-progress { height: 3px; background: var(--rd-rule); border-radius: 2px; overflow: hidden; }
+.rdx-progress i { display: block; height: 100%; width: 0; background: var(--rd-hl); transition: width 0.25s ease; }
+
+.rdx article.rd-page { display: none; }
+.rdx article.rd-page.is-on,
+.rdx[data-layout="all"] article.rd-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 21rem);
+  gap: 1.5rem;
+  padding: 1.1rem 0 1.4rem;
+}
+.rdx[data-layout="all"] article.rd-page { border-bottom: 1px solid var(--rd-rule); }
+.rdx-main { min-width: 0; }
+
+.md-typeset .rd-crumb {
+  font-size: 0.66rem; color: var(--md-default-fg-color--light);
+  margin: 0 0 0.35rem; max-width: none;
+}
+.md-typeset .rd-crumb b {
+  display: inline-block; margin-right: 0.45rem; padding: 0.05rem 0.55rem;
+  border: 1px solid var(--rd-rule); border-radius: 999px;
+  color: var(--md-default-fg-color); font-weight: 600;
+}
+.md-typeset .rdx-main h2 {
+  font-size: 1.32rem; line-height: 1.25; margin: 0.1rem 0 0.8rem; font-weight: 650;
+}
+.md-typeset .rdx-main h2 .headerlink { display: none; }
+
+.rdx-figbox {
+  border: 1px solid var(--rd-rule); border-radius: 12px;
+  padding: 0.8rem 1rem 0.7rem; background: var(--rd-surface);
+}
+.rdx-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.2rem; margin-bottom: 0.6rem; font-size: 0.68rem; }
+.rdx-ctl[hidden] { display: none; }
+.rdx-slider { display: inline-flex; align-items: center; gap: 0.5rem; }
+.rdx-slider input { accent-color: var(--rd-paper); width: min(13rem, 46vw); }
+.rdx-read { font-family: var(--md-code-font-family); font-size: 0.68rem; font-variant-ligatures: none; }
+.rdx-seg { display: inline-flex; border: 1px solid var(--rd-rule); border-radius: 999px; overflow: hidden; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.rdx-seg button { flex: none; }
+.rdx-seg button { font: inherit; padding: 0.22rem 0.75rem; border: 0; background: transparent; color: inherit; cursor: pointer; }
+.rdx-seg button[aria-pressed="true"] { background: var(--md-default-fg-color); color: var(--md-default-bg-color); }
+.rdx-fig svg { display: block; width: 100%; height: auto; }
+.rdx-fig .rd-static { overflow-x: auto; }
+.rdx-fig .rd-static pre { margin: 0; }
+.md-typeset .rdx-figbox .rd-cap,
+.md-typeset .rdx-main > .rd-cap {
+  font-size: 0.64rem; line-height: 1.5; color: var(--md-default-fg-color--light);
+  margin: 0.55rem 0 0; max-width: none;
+}
+.rdx-missing { color: var(--rd-bad); font-size: 0.75rem; }
+
+.rdx-rail { display: flex; flex-direction: column; border-left: 1px solid var(--rd-rule); padding-left: 1.1rem; min-width: 0; }
+.md-typeset ol.rdx-steps { list-style: none; counter-reset: rdx; margin: 0; padding: 0; }
+.md-typeset ol.rdx-steps > li {
+  counter-increment: rdx; position: relative; margin: 0 0 0.3rem;
+  padding: 0.45rem 0.7rem 0.45rem 2rem; border-radius: 10px;
+  font-size: 0.78rem; line-height: 1.55; max-width: none;
+}
+.md-typeset ol.rdx-steps > li::before {
+  content: counter(rdx); position: absolute; left: 0.75rem; top: 0.48rem;
+  font-family: var(--md-code-font-family); font-size: 0.68rem; font-weight: 700;
+  color: var(--md-default-fg-color--light);
+}
+.rdx-st { cursor: pointer; font-weight: 650; }
+.rdx-sb { display: none; margin-top: 0.25rem; }
+.rdx-sb > p { margin: 0.3rem 0 0; }
+.md-typeset ol.rdx-steps > li.is-cur { background: var(--rd-surface); border: 1px solid var(--rd-rule); }
+.md-typeset ol.rdx-steps > li.is-cur .rdx-sb,
+.rdx[data-layout="all"] .rdx-sb { display: block; }
+.md-typeset ol.rdx-steps > li.is-todo .rdx-st { color: var(--md-default-fg-color--light); }
+.md-typeset ol.rdx-steps > li.is-done .rdx-st { color: var(--md-default-fg-color--light); font-weight: 550; }
+.md-typeset ol.rdx-steps > li.is-take.is-cur { border: 1px dashed var(--rd-take); }
+.md-typeset ol.rdx-steps > li.is-code.is-cur { border-left: 3px solid var(--rd-code); }
+.rdx-voice {
+  display: inline-block; margin-right: 0.4rem; padding: 0 0.45rem; border-radius: 999px;
+  font-size: 0.58rem; font-weight: 600; vertical-align: 0.1em;
+  border: 1px solid var(--rd-take); color: var(--rd-take);
+}
+li.is-code .rdx-voice { border-color: var(--rd-code); color: var(--rd-code); }
+.rdx-ref { font-family: var(--md-code-font-family); font-size: 0.6rem; color: var(--md-default-fg-color--light); white-space: nowrap; font-variant-ligatures: none; }
+.rdx-stat {
+  display: block; margin: 0.5rem 0 0.15rem; padding: 0.45rem 0.7rem;
+  border: 1px solid var(--rd-rule); border-radius: 8px; background: var(--md-default-bg-color);
+}
+.rdx-stat b { display: block; font-size: 1.45rem; line-height: 1.15; color: var(--rd-paper); font-weight: 700; }
+.rdx-stat span { font-size: 0.62rem; color: var(--md-default-fg-color--light); }
+
+.rdx .rd-take { display: none; }
+.md-typeset .rdx .rd-take.is-shown,
+.md-typeset .rdx[data-layout="all"] .rd-take {
+  display: block; margin: 0.7rem 0 0; padding: 0.7rem 0.85rem; border-radius: 10px; max-width: none;
+  font-size: 0.76rem; line-height: 1.5;
+  background: color-mix(in srgb, var(--rd-code) 11%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rd-code) 40%, transparent);
+}
+.md-typeset .rdx .rd-take.bad.is-shown { background: color-mix(in srgb, var(--rd-bad) 10%, transparent); border-color: color-mix(in srgb, var(--rd-bad) 45%, transparent); }
+.md-typeset .rd-take b:first-child { display: block; margin-bottom: 0.15rem; }
+
+.rdx-quiz { display: flex; flex-direction: column; gap: 0.4rem; }
+.rdx-opt {
+  font: inherit; font-size: 0.76rem; text-align: left; line-height: 1.45; cursor: pointer;
+  padding: 0.55rem 0.75rem; border-radius: 10px; border: 1px solid var(--rd-rule);
+  background: var(--md-default-bg-color); color: var(--md-default-fg-color);
+}
+.rdx-opt:disabled { cursor: default; }
+.rdx-opt.is-right { border-color: var(--rd-code); background: color-mix(in srgb, var(--rd-code) 12%, transparent); }
+.rdx-opt.is-wrong { border-color: var(--rd-bad); background: color-mix(in srgb, var(--rd-bad) 10%, transparent); }
+
+.rdx-nav {
+  margin-top: auto; display: flex; align-items: center; gap: 0.5rem;
+  padding-top: 0.8rem; border-top: 1px solid var(--rd-rule);
+}
+.rdx-pos { flex: 1; font-family: var(--md-code-font-family); font-size: 0.6rem; color: var(--md-default-fg-color--light); }
+.rdx-back, .rdx-next {
+  font: inherit; font-size: 0.72rem; font-weight: 600; cursor: pointer;
+  padding: 0.42rem 0.95rem; border-radius: 999px; border: 1px solid var(--rd-rule);
+  background: transparent; color: var(--md-default-fg-color);
+}
+.rdx-next { background: var(--md-default-fg-color); color: var(--md-default-bg-color); border-color: var(--md-default-fg-color); }
+.rdx-back:disabled { opacity: 0.35; cursor: default; }
+.rdx-back:focus-visible, .rdx-next:focus-visible, .rdx-opt:focus-visible, .rdx-st:focus-visible { outline: 2px solid var(--md-accent-fg-color); outline-offset: 2px; }
+.rdx[data-layout="all"] .rdx-nav { display: none; }
+
+/* cover page */
+.rdx article.rd-cover.is-on, .rdx[data-layout="all"] article.rd-cover { display: block; }
+.md-typeset .rd-cover h1 { font-size: 2rem; line-height: 1.15; margin: 0.4rem 0 0.6rem; max-width: 40rem; }
+.md-typeset .rd-cover .rd-cover__idea { font-size: 1rem; line-height: 1.55; max-width: 40rem; margin: 0 0 1rem; }
+.rd-cover__go { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.4rem 0 1.4rem; }
+.rd-cover__go button {
+  font: inherit; font-size: 0.76rem; font-weight: 600; cursor: pointer;
+  padding: 0.55rem 1.1rem; border-radius: 999px; border: 1px solid var(--md-default-fg-color);
+  background: transparent; color: var(--md-default-fg-color);
+}
+.rd-cover__go button.is-primary { background: var(--md-default-fg-color); color: var(--md-default-bg-color); }
+.rd-cover__go button small { font-weight: 400; opacity: 0.75; margin-left: 0.3rem; }
+.rd-cover__parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr)); gap: 0.7rem; margin: 0 0 1.4rem; }
+.rd-cover__part { border: 1px solid var(--rd-rule); border-radius: 10px; padding: 0.65rem 0.8rem; font-size: 0.72rem; }
+.rd-cover__part b { display: block; font-size: 0.8rem; }
+.rd-cover__part span { color: var(--md-default-fg-color--light); }
+.rd-cover__facts { display: grid; grid-template-columns: max-content 1fr; gap: 0.2rem 1rem; font-size: 0.7rem; margin: 0; }
+.md-typeset .rd-cover__facts dt { color: var(--md-default-fg-color--light); font-weight: 500; }
+.md-typeset .rd-cover__facts dd { margin: 0; }
+.rd-muted { color: var(--md-default-fg-color--light); }
+
+@media screen and (max-width: 60em) {
+  .rdx article.rd-page.is-on, .rdx[data-layout="all"] article.rd-page { grid-template-columns: 1fr; gap: 0.8rem; }
+  .rdx-rail { border-left: 0; padding-left: 0; }
+  .rdx-nav { position: sticky; bottom: 0; background: var(--md-default-bg-color); padding-bottom: 0.6rem; z-index: 2; }
+  .rdx-bar { top: 2.4rem; }
+  .rdx-allbtn { display: none; }
+}
+@media screen and (max-width: 44em) {
+  .rdx-bar { position: static; flex-wrap: nowrap; }
+  .rdx-chapters { flex: 1; min-width: 0; }
+  .rdx-spacer { display: none; }
+  .rdx-fig { cursor: zoom-in; }
+  .rdx-fig.is-zoomed { overflow-x: auto; cursor: zoom-out; }
+  .rdx-fig.is-zoomed svg { width: 640px; max-width: none; }
+  .rdx-figbox .rd-cap::after { content: " Tap the drawing to zoom."; }
+}
+@media screen and (max-width: 30em) {
+  .md-typeset .rdx-main h2 { font-size: 1.12rem; }
+  .rdx-figbox { padding: 0.55rem 0.55rem 0.5rem; }
+  .rd-cover__facts { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .rdx-progress i { transition: none; } }
+.rdx-slider span { white-space: nowrap; }
+@media screen and (max-width: 44em) { body:has(.rdx) .md-content__inner > .md-tags { display: none; } }

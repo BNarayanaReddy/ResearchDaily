@@ -142,11 +142,14 @@ markdown_extensions:
 
 extra_css:
   - assets/stylesheets/extra.css
+  - assets/stylesheets/legacy.css   # old long-page lessons; drop when all are converted
 
 extra_javascript:
   - assets/javascripts/mathjax-config.js
   - https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js
   - assets/javascripts/site.js
+  - assets/javascripts/explainer.js
+  - assets/javascripts/legacy.js    # old long-page lessons; drop when all are converted
 
 extra:
   generator: false
