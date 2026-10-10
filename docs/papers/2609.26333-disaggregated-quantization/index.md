@@ -6,741 +6,456 @@ year: 2026
 venue: "arXiv preprint"
 arxiv_id: "2609.26333"
 arxiv_version: v1
-code: {url: "https://github.com/IST-DASLab/disaggregated-quantization", license: "none stated (no LICENSE file)", note: "QADD training, evaluation and kernel benchmarks; SLURM-targeted. Per the model card, the kernels behind the 1.78× llama.cpp number are not released."}
-model: {url: "https://huggingface.co/ISTA-DASLab/Qwen3.8-27B-NVFP4-prefiller", license: "Apache-2.0", note: "NVFP4 prefillers for 4 of the paper's 8 GGUF decoders; needs a Blackwell RTX 50-series or GB10 GPU; not run here"}
+code: {url: "https://github.com/IST-DASLab/disaggregated-quantization", license: "not stated in the paper", note: "code for the main results, plus a llama.cpp fork with ODP (§5); not run here"}
+model: {url: "https://huggingface.co/ISTA-DASLab/Qwen3.8-27B-NVFP4-prefiller", license: "not stated in the paper", note: "the trained Qwen3.8-27B prefillers (§5); not run here"}
 paper_type: method
 hook: "Take a 1-bit Qwen3.8-27B that scores 29% on MMLU-Pro, leave its weights untouched, and add a separately trained 4-bit prompt reader streamed from the SSD: it scores 61.5% and handles long prompts up to 1.78× faster."
 big_idea: "Reading the prompt is compute-bound and writing the answer is memory-bound, so give each phase its own quantization format (and, if you can store it, its own weights), trained together through the KV cache so the answer stays right."
+goal: "Decide whether to run a large LLM locally on one GPU as a 1–2-bit GGUF plus a trained prefiller, for long-prompt work such as Q&A over meeting transcripts."
 difficulty: 3
 difficulty_note: "New subfield (LLM inference and number formats), but the math is arithmetic: bytes versus FLOPs, block scales, and one KL loss."
-time_fast: 16
-time_deep: 100
 date_added: 2026-09-30
-prerequisites:
-  - {label: "Prefill, decode and the KV cache", anchor: "#primer-prefill-decode"}
-  - {label: "Compute-bound vs memory-bound", anchor: "#primer-bound"}
-  - {label: "Quantization formats: W4A16, W4A4, NVFP4, GGUF", anchor: "#primer-formats"}
-  - {label: "Quantization-aware distillation and the STE", anchor: "#primer-qad"}
 tags: [LLMs, Efficiency, Systems]
 description: "Take a 1-bit Qwen3.8-27B that scores 29% on MMLU-Pro, leave its weights untouched, and add a separately trained 4-bit prompt reader streamed from the SSD: it scores 61.5% and handles long prompts up to 1.78× faster."
 ---
 
-## Part I: Why should I care? { .rd-part }
+<article class="rd-page" id="primer-prefill-decode" data-part="Toolbox" data-draw="phases" markdown>
 
-## ⚡ The hook { #hook }
+<p class="rd-crumb"><b>Toolbox 1</b> Start here. Our running example: one 16K-token prompt on Qwen3-8B.</p>
 
-Someone on the internet has squeezed Qwen3.8-27B down to about 1 bit per weight (the Unsloth `IQ1_S` GGUF) so it fits on a small GPU. It runs, but it's badly damaged: **29.0%** on MMLU-Pro, against **84.6%** for the full-precision model (Table 5).
+## Why does answering a prompt happen in two phases?
 
-Now leave those 1-bit weights alone. Train a *second* copy of the linear layers in 4-bit NVFP4 whose only job is to read the prompt, and keep that copy on the SSD instead of the GPU. The same 1-bit decoder now scores **61.5%** on MMLU-Pro and **59.7%** on image questions (MMMU-Pro), up from 24.4%, even though the extra training was text only (Table 5, §3.2). At an 8K-token prompt, time to first token drops from **12.27 s to 6.90 s** (§3.2). GPU weight memory doesn't grow.
+1. **The prompt goes in at once.** Our example is a question about a long document, 16,384 tokens. **Prefill** pushes all of them through the network together (§1).
+2. **Each layer leaves keys and values.** Attention stores them for every prompt token. That store is the **KV cache** (§1).
+3. **The answer comes one token at a time.** **Decode** runs each new token alone through all 36 layers (Table 6). It reads the cache instead of the prompt.
+4. **The cache is the only hand-off.** Big deployments already run the phases on separate GPUs (§1.1). [[16,384 vs 1 | tokens per pass]]
 
-How can a better *prompt reader* rescue a broken *answer writer*, and how can extra weights cost no GPU memory? By the end of this page you'll be able to explain both, rebuild the core trick in 60 lines of PyTorch, and say where it breaks.
+<p class="rd-cap">Token count and the 36 layers are real (Table 6, Table 10). The answer words and box sizes are illustrative.</p>
 
-## ⚡ The paper in one picture { #one-picture }
+<p class="rd-take"><b>Prefill reads all at once; decode writes one token at a time.</b> Next: why they strain different hardware.</p>
 
-**One sentence.** Reading the prompt is compute-bound and writing the answer is memory-bound, so give each phase its own quantization format (and, if you can store it, its own weights), trained together through the KV cache so the answer stays right.
+</article>
 
-**One paragraph.** An LLM answers a question in two phases. *Prefill* pushes the whole prompt through the network in one go and leaves behind a KV cache. *Decode* then produces the answer one token at a time, reading that cache. Prefill is limited by arithmetic, so it wants fast low-precision math (4-bit weights **and** 4-bit activations). Decode is limited by how many bytes of weights it drags from memory per token, so it wants the tiniest possible weights and has no need to quantize activations. Disaggregated quantization (DQ) stops forcing one format on both. In its strongest form, prefill gets its own NVFP4 weights, decode keeps a 2-bit (or 1-bit) copy, and a training method called QADD optimizes both so that the *answer* matches a full-precision teacher. Since prefill weights are only needed while the prompt is being read, they can be streamed from SSD block by block (ODP).
+<article class="rd-page" id="primer-bound" data-part="Toolbox" data-draw="bound" data-fast markdown>
 
-<figure class="rd-fig" markdown>
---8<-- "papers/2609.26333-disaggregated-quantization/assets/one-picture.svg"
-<figcaption><strong>What to notice:</strong> the two halves only meet at the KV cache, which keeps the original model's shape. The dashed violet arrow is why this works: the loss is computed only on the answer, but its gradient flows back through the cache into the prefill weights, so the reader learns to write whatever the damaged writer needs.</figcaption>
-</figure>
+<p class="rd-crumb"><b>Toolbox 2</b> Uses the two phases from page 1.</p>
 
-## Primer: what you need first { #primer }
+## Why is reading limited by math, but writing by memory?
 
-??? deep "Open the primer (skip if you ticked every prerequisite)"
+1. **Take one layer.** A 4096 × 4096 weight from Qwen3-8B (Table 6). In BF16 that is 33.6 MB to load.
+2. **Decode feeds it one token.** Each weight does one multiply-add, then waits for the next step. About 1 FLOP per byte loaded (§1.1).
+3. **So memory is the limit.** The math units sit idle while weights arrive. Fewer weight bytes means faster decode (§1.1).
+4. **Prefill feeds it 16,384 tokens.** The same bytes now serve every token. That is about 1,820 FLOPs per byte. [[≈1,820 | FLOPs per byte at 16K tokens (our arithmetic)]]
+5. **Now math is the limit.** Long prefill is compute-bound, so faster arithmetic helps and smaller weights barely do (§1.1). Drag the slider from 1 to 16K.
 
-    ### Prefill, decode and the KV cache { #primer-prefill-decode }
+<p class="rd-cap">Layer size is real (Table 6); the cost formula is from §1.1. Byte and FLOP counts are our arithmetic, BF16 throughout.</p>
 
-    A decoder-only LLM predicts each token from all the tokens before it. At inference that splits into two phases (§1):
+<p class="rd-take"><b>Decode wants small weights; prefill wants fast math.</b> Next: what "small" and "fast" mean as number formats.</p>
 
-    - **Prefill.** The whole prompt (say 8,000 tokens) goes through every layer *in parallel*, like a training forward pass. Each attention layer stores the keys and values it computed for every prompt token. That store is the **KV cache**.
-    - **Decode.** The model generates the answer one token per step. Each new token runs through every layer alone (a sequence length of 1), attends to the cached keys and values, and appends its own.
+</article>
 
-    The cache is the only thing decode needs from prefill. That makes it a clean interface, which is why big deployments already run prefill and decode on **different GPUs** ("disaggregated serving") and ship the cache between them (§1.1).
+<article class="rd-page" id="primer-formats" data-part="Toolbox" data-draw="grid" markdown>
 
-    For a feel of the size: Qwen3-8B has 36 layers (Table 6) and, per its public config (found by us), 8 KV heads of dimension 128. A 16K-token prompt therefore leaves \(16384 \times 36 \times 2 \times 8 \times 128 \approx 1.2\)B cached numbers, about 2.4 GB in BF16.
+<p class="rd-crumb"><b>Toolbox 3</b> Gives page 2's "small weights" a size.</p>
 
-    !!! bridge "Speech bridge: Whisper's encoder and decoder"
-        You already know a model with two phases: Whisper's encoder crunches all 1,500 audio frames at once (compute-heavy, parallel), and its decoder emits text tokens one by one while cross-attending to the encoder output. Prefill is the "encoder" of a decoder-only LLM, and the KV cache plays the role of the encoder output.
+## How do you store a weight in 2 or 4 bits?
 
-        **Where it breaks:** Whisper's encoder and decoder are *different networks* trained as such. In a decoder-only LLM, prefill and decode run the **same** weights; the split only exists at inference time, and the "interface" is self-attention K/V at every layer, not one cross-attention memory. DQ's move is to split the weights again, encoder–decoder style, which is exactly how §1 frames it.
+1. **Cut weights into blocks of 16.** Each block gets its own scale (App. A.3). Here are the 16 weights of one block.
+2. **Scale the largest to 6.** Divide the block by its scale. Its biggest value lands on ±6 (App. A.3).
+3. **Snap to NVFP4's grid.** **NVFP4** allows a sign plus 0, 0.5, 1, 1.5, 2, 3, 4 or 6. Each weight moves to its nearest point (App. A.3).
+4. **LUT2 has only four points.** The paper's 2-bit **LUT2** grid is −3.6517, 0, 2.5227 and 6. Its scale takes the sign, so the biggest value is always +6 (App. A.3).
+5. **Count the bits.** The scale adds 0.5 bits per weight: LUT2 2.5, LUT3 3.5, NVFP4 4.5 (App. A.3). [[2.5 | bits per LUT2 weight]]
 
-    ### Compute-bound vs memory-bound { #primer-bound }
+<p class="rd-cap">Grids and bit costs are real (App. A.3). The 16 weights are illustrative; we skip the FP8 rounding of the scale.</p>
 
-    Every linear layer does two things: it **moves** weights and activations from memory into the compute units, and it **multiplies** them. For an \(H \times H\) weight and \(T\) tokens, it moves about \(H^2 + TH\) numbers and does about \(TH^2\) multiply-adds (§1.1). The ratio, **arithmetic intensity**, is roughly \(T\) when \(T \ll H\).
+<p class="rd-take"><b>Fewer grid points: fewer bytes, more error.</b> Next: recovering from that rounding.</p>
 
-    Plug in \(H = 4096\) (Qwen3-8B's width, Table 6), BF16:
+</article>
 
-    <figure class="rd-fig" markdown>
-    --8<-- "papers/2609.26333-disaggregated-quantization/assets/intensity.svg"
-    <figcaption><strong>What to notice:</strong> the same layer is at opposite ends of the scale. Decode moves 33.6 MB of weights to do about 1 FLOP per byte, so the compute units starve. Prefill at 16K tokens does about 1,800 FLOPs per byte, so memory is no longer the limit. (Our arithmetic from the paper's cost formula in §1.1; activations counted in and out at 2 bytes each.)</figcaption>
-    </figure>
+<article class="rd-page" id="primer-qad" data-part="Toolbox" data-draw="qad" markdown>
 
-    A GPU needs a certain number of FLOPs per byte to stay busy. We don't have the paper's figure for its hardware; as an order of magnitude (🧠), modern accelerators need a few hundred. Decode sits far below that line, so **fewer weight bytes = faster decode**. Prefill sits far above it, so **faster arithmetic = faster prefill**, and shrinking weights barely helps.
+<p class="rd-crumb"><b>Toolbox 4</b> Trains the rounded weights from page 3.</p>
 
-    ### Quantization formats: W4A16, W4A4, NVFP4, GGUF { #primer-formats }
+## How do you train a model that has been rounded?
 
-    Quantizing means storing a number with fewer bits by snapping it to a small grid. The notation **W*x*A*y*** says weights use *x* bits and activations *y*.
+1. **Keep full-precision master weights.** Training updates FP32 copies. The forward pass uses their rounded version (App. A.1).
+2. **Rounding has no useful gradient.** The **straight-through estimator** (STE) passes gradients back as if rounding were not there (App. A.1).
+3. **Copy a frozen teacher.** The unrounded model is the **teacher**. The rounded student learns to match its next-token probabilities (§3.1).
+4. **The loss is a KL divergence.** \(\mathrm{KL}(p_{\text{teacher}}\|p_{\text{student}})\) is zero only when they agree (§3.1). Move the slider to see it change.
+5. **It is a gentle nudge.** A constant learning rate of 3×10⁻⁶ for about 2,450 steps (Table 3). [[100M | tokens per run (Table 3)]]
 
-    - **Weight-only (W4A16, W2A16...).** Weights are stored compressed; the kernel decompresses them on the fly and multiplies with ordinary BF16 activations. Great for decode (fewer bytes), useless for prefill speed: the math is still BF16. The encoding can be anything, even an exotic codebook, because software decodes it (§1.1).
-    - **Weight + activation (W4A4).** Both operands are 4-bit and the GPU's tensor cores multiply them natively. This speeds up compute-bound prefill, but only works with formats the **hardware** supports, and quantizing activations adds error.
-    - **NVFP4** is NVIDIA's 4-bit float for Blackwell GPUs. Each value is E2M1: a sign plus one of the magnitudes {0, 0.5, 1, 1.5, 2, 3, 4, 6}. Values come in **blocks of 16**, each block has an FP8 scale, and the whole tensor has one FP32 scale (App. A.3). **NVFP4A16** means NVFP4 weights with BF16 activations, i.e. weight-only.
-    - **LUT2 / LUT3** are this paper's 2- and 3-bit weight-only formats: the same block scaling, but values snap to a small look-up table (grid) tuned for Gaussian-shaped weights (App. A.3). The GPU can't multiply them natively.
-    - **GGUF** is llama.cpp's file format. Names like `IQ1_S`, `IQ2_XXS`, `Q3_K_XL` are its weight-only schemes, from about 1 to 3 bits; the IQ ones use vector-quantized codebooks (§3.2).
+<p class="rd-cap">Training settings are real (Table 3, App. A.1). The three-word vocabulary and its probabilities are illustrative; KL is computed live.</p>
 
-    <figure class="rd-fig" markdown>
-    --8<-- "papers/2609.26333-disaggregated-quantization/assets/grids.svg"
-    <figcaption><strong>What to notice:</strong> how few places a 2-bit weight can land. LUT2 has only four values, and its asymmetry is deliberate: the block scale absorbs the sign so each block's largest-magnitude element always maps to exactly +6. (Grid values from App. A.3.)</figcaption>
-    </figure>
+<p class="rd-take"><b>Distillation teaches a rounded model to answer like the original.</b> Next: one format's trade-off.</p>
 
-    ### Quantization-aware distillation and the STE { #primer-qad }
+</article>
 
-    **Post-training quantization (PTQ)** rounds a trained model's weights and hopes for the best. **Quantization-aware training** keeps full-precision "master" weights, runs the forward pass with their *quantized* version, and updates the masters with the gradients. Rounding has zero gradient almost everywhere, so you use the **straight-through estimator (STE)**: forward with the rounded value, backward as if rounding were the identity. In PyTorch that's one line, `w + (q - w).detach()` (App. A.1).
+<article class="rd-page" id="problem" data-part="The machine" data-draw="problem" data-fast markdown>
 
-    **Quantization-aware distillation (QAD)** swaps the usual next-token loss for matching a frozen full-precision **teacher**: minimize \(\mathrm{KL}(p_{\text{teacher}} \,\|\, p_{\text{student}})\) over the vocabulary at each scored position (§3.1). The student learns the teacher's whole distribution, not just its top token.
+<p class="rd-crumb"><b>Machine 1</b> Uses compute vs memory (page 2) and formats (page 3).</p>
 
-    !!! bridge "Speech bridge: distilling a big ASR model into a small one"
-        This is the same recipe as distilling a large Whisper into a small on-device student with a KL on per-token distributions. **Where it breaks:** here teacher and student have *identical* architecture and start from the same weights; the student only differs by being rounded. The goal is to recover what rounding broke, not to transfer knowledge into a smaller network.
+## Why does one format for both phases force a bad trade?
 
-## The problem { #problem }
+1. **Weight-only skips fast math.** The kernel unpacks 2-bit weights and multiplies them with BF16 activations. Prefill runs at BF16 speed: 1.00× (Table 1).
+2. **Fast math needs a hardware format.** Tensor cores multiply NVFP4 by NVFP4 natively. A 2-bit LUT weight is not such a format (§1.1, §2.3).
+3. **So convert on the fly.** **Autocast** re-rounds the 2-bit weight to NVFP4 and rounds activations too. Prefill gets 1.49× faster on Qwen3-8B (Table 1).
+4. **Decode pays for it.** The same rounding now hits every answer token. Decode-heavy accuracy falls from 38.4 to 34.8 (Table 1). [[−3.6 | decode-heavy points for 1.49× prefill]]
+5. **Neither is close to BF16.** Full precision scores 66.2 decode-heavy and 84.2 prefill-heavy (Table 1).
 
-Today, a quantized model uses **one format for both phases**, which forces a bad trade.
+<p class="rd-cap">Scores are Table 1 Qwen 3 family means; speedups are measured on Qwen3-8B. The kernel boxes are our sketch.</p>
 
-Pick a W4A4 format like NVFP4 and prefill gets up to 1.49× faster on Qwen3-8B (Table 1), but the 4-bit activations also hit decode, where they save little (decode is memory-bound anyway) and cost accuracy on every generated token. Pick a weight-only format and decode is small and accurate, but prefill runs at plain BF16 speed.
+<p class="rd-take bad"><b>With one format, fast prefill costs you worse answers.</b> Next: let each phase pick its own.</p>
 
-It gets worse at 2–3 bits, which is where the best size-to-accuracy trade-offs live (§2.3). Those compact encodings aren't hardware compute formats. To use tensor cores anyway you must "autocast": re-quantize the 2-bit weights into NVFP4 on the fly, and quantize activations too. Now prefill runs on a doubly-rounded weight, and decode pays for all of it.
+</article>
 
-Here are the costs on the Qwen 3 family, averaged over 0.6B–8B (Table 1):
+<article class="rd-page" id="ladder" data-part="The machine" data-draw="ladder" data-fast markdown>
 
-| 2-bit weights, used as... | Prefill speedup | Decode-heavy acc. | Prefill-heavy acc. |
-|---|---|---|---|
-| weight-only both phases (W2A16) | 1.00× | 38.4 | 64.1 |
-| autocast to NVFP4 both phases ("LUT2") | 1.49× | 34.8 | 61.3 |
-| BF16 reference | 1.00× | 66.2 | 84.2 |
+<p class="rd-crumb"><b>Machine 2</b> The whole machine, four rungs. Fixes page 5's trade.</p>
 
-Faster prefill costs 3.6 points of reasoning accuracy, and neither row is anywhere near BF16.
+## What changes when prefill and decode stop sharing a format?
 
-!!! paper "The paper's framing (§1, §1.1)"
-    Prefill and decode are different enough that large deployments already put them on separate accelerators with their own weights, exchanging only the KV cache. Existing work on that split mostly optimizes the cache's communication and scheduling. The paper argues the two phases can also use *different quantized representations* while being trained toward the same response.
+1. **Rung 1: one weight, one format.** The 2-bit weight is autocast to NVFP4 in both phases. Qwen3-8B needs 4.66 GB on the GPU (Table 1).
+2. **Rung 2: split the format.** Same weight, but decode uses it weight-only. This is **format disaggregation**, still 4.66 GB (§2.3).
+3. **Rung 3: split the weights.** Prefill gets its own NVFP4 copy, trained alongside the decoder. This is **full disaggregation**: 8.57 GB (§2.4).
+4. **Rung 4: park that copy on SSD.** **ODP** streams prefill weights in only while the prompt is read. Back to 4.66 GB (§2.5). [[4.66 GB | GPU weights with ODP, same as 2-bit alone]]
+5. **Attention stays untouched.** Only linear layers split. The KV cache keeps its original shape, so decode can read it (§2.4).
 
-!!! take "Our sharper version"
-    Quantization research has quietly assumed that "the model" is one object with one format. Serving systems stopped believing that years ago. This paper applies the serving-systems view to the number format.
+<p class="rd-cap">GB are Table 1 (Qwen3-8B and Gemma3-12B, 2-bit decode). The rungs are our redraw of the idea in Fig. 2.</p>
 
-If we split the formats, how do we train two pathways that never see the same token, and what do we do with a second set of weights on a laptop-sized GPU?
-{ .rd-next }
+<p class="rd-take"><b>Each rung removes one source of rounding error from one phase.</b> The next pages climb the rungs one at a time.</p>
 
-## Part II: What and how { .rd-part }
+</article>
 
-## ⚡ The big idea { #big-idea }
+<article class="rd-page" id="format-disagg" data-part="The machine" data-draw="route" markdown>
 
-**Read fast, write small.** The prompt reader gets fast 4-bit arithmetic; the answer writer gets the smallest weights you can tolerate. They're allowed to disagree about everything except the KV cache, and they're trained *together*, so the answer is what gets optimized, not each half's rounding error.
+<p class="rd-crumb"><b>Machine 3</b> Zooms into rung 2 from page 6.</p>
 
-The "aha" is in the training. In an SFT example, the label mask already marks which tokens are prompt (ignored by the loss) and which are answer (scored). QADD reuses that mask to **route** each token through the prefill or the decode pathway (§2.1). One forward–backward pass then trains both. The loss only looks at the answer, yet the prefill weights still learn, because every answer token attends to the keys and values that prefill wrote.
+## What happens inside a layer when decode skips 4-bit activations?
 
-That opens the most surprising option: freeze someone else's decoder entirely, even a 1-bit GGUF, and train only a **prefiller** that writes a KV cache this particular broken decoder can use well (§2.6).
+1. **One weight, two paths.** Every linear layer keeps a single stored weight. The token's phase picks the path (§2.3).
+2. **Prompt tokens take the fast path.** Weights and activations both become NVFP4 for tensor-core math. Prefill keeps its 1.49× (Table 1).
+3. **Answer tokens skip activation rounding.** Decode multiplies the stored weight by BF16 activations. Only weight bytes matter here (§2.3).
+4. **Decode even gets faster.** It drops one rounding call per layer. NVFP4's decode speedup rises from 2.86× to 2.93× (Table 1, App. C.2). [[2.93× | decode speedup over BF16, Qwen3-8B]]
+5. **Storage does not change.** Same weights, so NVFP4 still needs 6.40 GB on Qwen3-8B (Table 1).
 
-!!! predict "Pause and predict"
-    You make decode weight-only (drop activation quantization at decode only) but keep the *same* weights and the NVFP4 prefill. Which benchmark type should gain more accuracy: long-answer reasoning (GSM8K, MATH) or long-prompt retrieval with 30–128-token answers (RULER)?
+<p class="rd-cap">Speedups and GB are Table 1 (Qwen3-8B). The layer sketch is ours.</p>
 
-    ??? answer "Reveal"
-        **Reasoning.** You only removed error from the decode phase, and reasoning tasks spend most of their tokens in decode. The paper sees exactly that: format disaggregation adds 1.9–4.5 points on decode-heavy tasks and changes prefill-heavy RULER by less than 1.3 points (§3.2). If you guessed RULER because "the prompt is long", note that the prompt still goes through the same NVFP4 prefill path as before.
+<p class="rd-take"><b>Format disaggregation is a free switch: same file, same prefill speed, cleaner decode.</b> Its accuracy gain is on page 13.</p>
 
-## How it works { #how-it-works }
+</article>
 
-We'll build it up in four rungs. Each fixes something the previous one couldn't.
+<article class="rd-page" id="full-disagg" data-part="The machine" data-draw="double" markdown>
 
-### ⚡ The core mechanism: a ladder of three splits { #ladder }
+<p class="rd-crumb"><b>Machine 4</b> Rung 3 from page 6, with the grids from page 3.</p>
 
-Everything happens inside each linear layer. The attention architecture and cache shape stay untouched (§2.4).
+## Why give prefill its own weights?
 
-<figure class="rd-fig" markdown>
---8<-- "papers/2609.26333-disaggregated-quantization/assets/ladder.svg"
-<figcaption><strong>What to notice:</strong> going down the ladder, the blue decode path gets rid of 4-bit activations (rung ②), then the amber prefill path gets rid of its dependence on the 2-bit weight (rung ③). Each rung removes one source of rounding error from one phase. (Our redraw of the idea in the paper's Fig. 2.)</figcaption>
-</figure>
+1. **Rung 2 still rounds twice.** Prefill sees the 2-bit weight converted to NVFP4: first to LUT2, then to NVFP4 (§2.3).
+2. **NVFP4 could hold more.** It has 15 values, LUT2 only 4. The 2-bit encoding throws away detail that prefill could use (§2.3).
+3. **Give prefill its own copy.** A separate NVFP4 weight starts from the same unrounded model (§2.4). Toggle to compare the errors.
+4. **Both copies train together.** Each decode format gets its own prefill copy, trained toward the same answers (§2.4).
+5. **The price is a second file.** GPU weights grow from 4.66 to 8.57 GB on Qwen3-8B (Table 1). [[8.57 GB | both copies on the GPU, 2-bit decode]]
 
-1. **Non-disaggregated (the baseline).** One weight and one path for both phases. With 2-bit LUT weights, "autocast" re-quantizes them to NVFP4 and quantizes activations everywhere (§2.3). Fast prefill, but decode carries needless error.
-2. **Format-disaggregated.** Same single weight, same storage. Prefill keeps the fast NVFP4 path, while decode skips the re-quantization and activation quantization and multiplies the compact weight with BF16 activations. It's free: decode even gets 2–3% faster, because it skips the activation-quantize call (§3.2, App. C.2).
-3. **Fully-disaggregated.** Prefill still sees a re-quantized *view* of a 2-bit weight, which throws away information it has no use for (§2.3). So give prefill **its own NVFP4 weights**, initialized from the same unquantized model and trained jointly (§2.4). You now store two checkpoints.
-4. **ODP (offloaded disaggregated prefill).** The extra checkpoint is only needed while the prompt is read, so stream it from SSD one transformer block at a time, through two GPU buffers borrowed from decode weights that sit idle during prefill (§2.5). No extra GPU weight memory.
+<p class="rd-cap">GB from Table 1; grids from App. A.3; the 15-value count is our arithmetic. The weights and errors are illustrative, computed live.</p>
 
-And a variant of rung 3: **prefillers** keep someone else's frozen decoder and train only the prefill copy (§2.6).
+<p class="rd-take"><b>Full disaggregation frees prefill from the 2-bit grid, at the cost of a second checkpoint.</b> Next: how one training run fits both.</p>
 
-!!! paper "Speed and memory stay put (Table 1, §3.2)"
-    On Qwen3-8B, format-disaggregated LUT2 keeps LUT2's 1.49× prefill and 4.66 GB device weights, and its decode speedup rises from 3.73× to 3.82× because decode skips activation quantization. Full disaggregation keeps the 3.82× decode but needs 8.57 GB resident. With ODP it drops back to 4.66 GB at 1.47× prefill (16K context).
+</article>
 
-### Data flow with shapes { #shapes }
+<article class="rd-page" id="qadd" data-part="The machine" data-draw="qadd" data-fast markdown>
 
-For Qwen3-8B (\(d_{\text{model}} = 4096\), \(d_{\text{ffn}} = 12288\), 36 layers, Table 6; head counts from the public config, found by us) and a prompt of \(T\) tokens:
+<p class="rd-crumb"><b>Machine 5</b> Applies the distillation from page 4 to rungs 2 and 3.</p>
 
-<figure class="rd-fig" markdown>
+## How do two pathways train in one pass?
 
-```mermaid
-flowchart TB
-  accTitle: Qwen3-8B under full disaggregation with ODP
-  accDescr: Prompt tokens go through prefill blocks streamed from SSD, producing a KV cache per layer; decode blocks resident on the GPU read the cache and generate one token per step.
-  P["prompt ids: T"] --> E["shared embedding: T × 4096"]
-  E --> PB["36 prefill blocks, NVFP4 W4A4<br/>each streamed SSD → GPU slot"]
-  PB --> KV["KV cache per layer<br/>K, V: T × 8 heads × 128"]
-  KV --> DB["36 decode blocks, 2-bit weight-only<br/>resident, input 1 × 4096 per step"]
-  DB --> H["shared BF16 lm_head: 1 × vocab"]
-  H -->|"next token"| DB
-```
+1. **Chat data already marks roles.** In fine-tuning data, prompt tokens have ignored labels. Answer tokens are scored (§2.1).
+2. **Reuse that mask to route.** Prompt positions run the prefill path; answer positions run the decode path. This is **QADD** (§2.1, App. A.1).
+3. **Score only the answer.** The KL loss compares the answer predictions with the teacher's (App. A.1).
+4. **Gradients still reach prefill.** Every answer token attends to keys and values written by prefill weights (§2.1).
+5. **One more route: the boundary.** The last prompt token runs prefill but predicts the first answer token, so it is scored too (App. A.1). [[1 | forward–backward pass trains both paths]]
 
-<figcaption><strong>What to notice:</strong> only the linear projections inside the blocks are duplicated. Embedding, output head and attention cache shape are shared, so decode can't tell which weights wrote the cache. (The lm_head stays unquantized in every format, App. A.3.)</figcaption>
-</figure>
+<p class="rd-cap">The routing and gradient routes are App. A.1. The seven-token chat is illustrative.</p>
 
-### Decoding the formats { #formats-math }
+<p class="rd-take"><b>The answer's loss trains the prompt reader through the KV cache.</b> Next: where that second set of weights lives.</p>
 
-**Two-level block scaling** (App. A.3). A weight tensor \(W\) is cut into blocks of 16 along the input (contraction) dimension:
+</article>
 
-\[
-s = \frac{\max |W|}{6 \cdot 448}, \qquad
-b_j = \operatorname{e4m3}\!\left(\frac{\max_{i \in j} |W_i| / 6}{s}\right), \qquad
-\hat W_i = g\!\left(\frac{W_i}{b_j\, s}\right) \cdot b_j\, s
-\]
+<article class="rd-page" id="odp" data-part="The machine" data-draw="odp-mem" data-fast markdown>
 
-| Symbol | Meaning |
-|---|---|
-| \(s\) | one FP32 global scale per tensor; 6 is the grid maximum, 448 is FP8-E4M3's maximum |
-| \(b_j\) | the FP8-E4M3 scale of block \(j\) (16 elements), chosen so the block's largest element lands near ±6 |
-| \(g(\cdot)\) | round to the nearest grid point: E2M1 for NVFP4, the LUT tables for LUT2/LUT3 |
-| \(\hat W_i\) | the dequantized value the matmul actually uses |
+<p class="rd-crumb"><b>Machine 6</b> Rung 4 from page 6, for our 2-bit Qwen3-8B.</p>
 
-**In words:** divide each block by its own scale so its biggest element sits at the edge of the grid, snap to the grid, multiply back. The two levels exist because an FP8 scale alone has limited range, so the FP32 global scale puts all the block scales in range.
+## Where do the prefill weights wait while you decode?
 
-**Tiny example** (4 values instead of 16, global scale folded in): block = [0.12, −0.50, 0.33, 0.07].
+1. **Decode weights live on the GPU.** For our 2-bit Qwen3-8B, 4.66 GB (Table 1). They sit idle while the prompt is read (§2.4).
+2. **Prefill weights live on SSD.** The NVFP4 copy is needed only while the prompt is processed (§2.5).
+3. **Borrow two block-sized slots.** ODP carves them out of the idle decode weights. One block computes while the next loads (§2.5).
+4. **Stream the blocks in turn.** Each block's weights are dropped once it has written its keys and values (§2.5).
+5. **Restore, then decode.** The borrowed decode weights come back. SSD reads: 3.64 + 0.20 GB (App. C.1). [[0 GB | extra GPU weight memory]]
 
-- *NVFP4:* scale = 0.50/6 ≈ 0.0833. Normalized: [1.44, −6, 3.96, 0.84] → snap to E2M1: [1.5, −6, 4, 1] → back: **[0.125, −0.50, 0.333, 0.083]**. Close everywhere.
-- *LUT2 (signed scale):* the largest-magnitude element is negative, so the scale absorbs the sign: −0.0833. Normalized: [−1.44, +6, −3.96, −0.84] → snap to {−3.65, 0, 2.52, 6}: [0, 6, −3.65, 0] → back: **[0, −0.50, 0.304, 0]**. Two of four weights vanish.
+<p class="rd-cap">Sizes are App. C.1 and Table 1 (Qwen3-8B, 36 blocks). Box sizes are not to scale.</p>
 
-**Storage** (App. A.3): LUT\(b\) costs \(b + 0.5\) bits per weight (the FP8 scale per 16 elements adds 0.5), so LUT2 is 2.5 bits, LUT3 3.5, NVFP4 4.5, against 16 for BF16. At batch-1 decode that byte count is almost the whole cost (App. C.2).
+<p class="rd-take"><b>Extra weights cost SSD reads, not GPU memory.</b> Next: when reads slow you down.</p>
 
-??? deep "Deep dive: why the LUT grids look the way they do"
-    The grids were fit to minimize expected squared error on \(\mathcal{N}(0,1)\) samples after the same block scaling, with two points pinned: 0 and +6 (App. A.3). In the repo, a comment in `grids.py` explains the pins (💻, [grids.py L48–L72](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/quantizers/grids.py#L48-L72)): +6 makes each block's extreme element exact, and 0 gives a true flush-to-zero for the many near-zero weights. The comment measures the cost of pinning at a relative MSE of 0.0211 versus 0.0205 for the unconstrained 3-bit Lloyd grid. Lloyd's algorithm is 1-D k-means, which is why the code calls these formats `lloyd43` and `lloyd21`.
+</article>
 
-### QADD: one pass, two pathways { #qadd }
+<article class="rd-page" id="odp-time" data-part="The machine" data-draw="odp-time" markdown>
 
-<figure class="rd-fig" markdown>
---8<-- "papers/2609.26333-disaggregated-quantization/assets/qadd.svg"
-<figcaption><strong>What to notice:</strong> the thick-bordered "?" token. It runs through the <em>prefill</em> pathway but predicts the first answer token, so it's scored. That boundary position, plus every answer token's attention into the prompt K/V, is how prefill weights get gradient from an answer-only loss (App. A.1).</figcaption>
-</figure>
+<p class="rd-crumb"><b>Machine 7</b> Times the streaming from page 10.</p>
 
-The objective is ordinary distillation, restricted to answer targets (§3.1, App. A.1):
+## When does streaming the weights cost nothing?
 
-\[
-\mathcal{L} = \frac{1}{|\mathcal{A}|} \sum_{t \in \mathcal{A}} \mathrm{KL}\big(p_{\text{teacher}}(\cdot \mid x_{\le t}) \,\big\|\, p_{\text{student}}(\cdot \mid x_{\le t};\, \theta_{\text{pre}}, \theta_{\text{dec}}, m)\big)
-\]
+1. **Loading costs the same every time.** The whole prefill copy comes off the SSD, whatever the prompt length (§2.5).
+2. **Compute grows with the prompt.** Longer prompts give each block more work, and more time to hide the next load (§2.5).
+3. **Short prompts stall.** The GPU waits for the SSD between blocks (§2.5). At 1K, watch the gaps open in the compute row.
+4. **Around 8K, compute takes over.** On DGX Spark, compute overtakes loading near 8K for all Qwen 3 models (§2.5).
+5. **At 16K, streaming is nearly free.** Qwen3-8B prefill is 1.49× faster than BF16 resident, and 1.47× streamed (Table 10). [[1.47× | streamed prefill vs BF16 at 16K]]
 
-| Symbol | Meaning |
-|---|---|
-| \(\mathcal{A}\) | positions whose *next* token is an answer token (causal shift), including the last prompt position |
-| \(p_{\text{teacher}}\) | the frozen BF16 model's next-token distribution |
-| \(\theta_{\text{pre}}, \theta_{\text{dec}}\) | prefill and decode weights; equal (shared master) for format disaggregation, separate for full disaggregation, \(\theta_{\text{dec}}\) frozen for prefillers |
-| \(m\) | the per-token mask from the SFT labels: label = −100 → prefill pathway, else decode |
+<p class="rd-cap">Speedups are Table 10 (Qwen3-8B, DGX Spark). The timeline is schematic, scaled so loading equals compute at 8K (§2.5).</p>
 
-(The paper writes the objective only as \(\mathrm{KL}(p_{\text{teacher}}\|p_{\text{student}})\); the expanded form above is our notation for what §2.1 and App. A.1 describe.)
+<p class="rd-take"><b>ODP is nearly free for long prompts and costly for short ones.</b> Above 16K it adds under 5% on Qwen 3 (§3.2).</p>
 
-**In words:** run the student over the whole chat with each token in its phase's format, compare its answer-token distributions to the teacher's, and backpropagate into whichever weights are trainable.
+</article>
 
-**Tiny numeric example.** Vocabulary of 3. Teacher says \(p = [0.7, 0.2, 0.1]\) for the first answer token; the student says \(q = [0.5, 0.3, 0.2]\).
-\(\mathrm{KL}(p\|q) = 0.7\ln\frac{0.7}{0.5} + 0.2\ln\frac{0.2}{0.3} + 0.1\ln\frac{0.1}{0.2} = 0.236 - 0.081 - 0.069 = 0.085\) nats. Only the prefill weights produced the hidden state at that position (it's the "?" position), so in a prefiller setup all of that gradient lands on \(\theta_{\text{pre}}\).
+<article class="rd-page" id="prefiller" data-part="The machine" data-draw="prefiller" markdown>
 
-!!! predict "Pause and predict"
-    During training, every token goes through the model in a single teacher-forced pass. At inference, prefill runs once and decode runs step by step. Why is training in one pass not cheating: why do the two compute the same thing?
+<p class="rd-crumb"><b>Machine 8</b> Full disaggregation (page 8), with the decoder frozen. New example: a 1-bit 27B.</p>
 
-    ??? answer "Reveal"
-        Attention is causal and the routing is per position. A prompt position's K/V depend only on earlier prompt tokens, all processed by the prefill pathway, exactly as in real prefill. An answer position depends on the prompt K/V (prefill-made) and on earlier answer K/V (decode-made), exactly as in real decode. So the teacher-forced pass reproduces the inference-time cache token for token. The trap is thinking the decode pathway needs to run sequentially during training; it doesn't, just as a causal LM trains in parallel. (One real difference: multi-turn chats, where the paper flags that *previous* answers may be re-prefilled later, §5.)
+## Can you bolt a prefiller onto someone else's frozen model?
 
-**Pseudocode** (after App. A.1; the paper has no algorithm box):
+1. **Start from a released GGUF.** Our new example: Qwen3.8-27B squeezed to the 1-bit **IQ1_S** format by Unsloth (§3.2, App. A.2).
+2. **Freeze the decoder.** Its weights never change. Training needs the checkpoint, not how it was made (§2.6).
+3. **Train only a prefill copy.** An NVFP4 **prefiller** learns to write the cache this particular decoder reads best (§2.6).
+4. **Shared parts stay frozen.** Embeddings, the output head and the linear-attention gates are shared and untouched (App. A.2).
+5. **Cost: 95M tokens.** 980 steps on reasoning traces from the full model, using 64 B300 GPUs (App. A.2, Table 4). [[980 | training steps per prefiller]]
 
-```text
-for batch (input_ids, labels) in SFT data:
-    mask = (labels == -100)                  # True -> prefill pathway
-    with teacher frozen:  t_logits = teacher(input_ids)
-    s_logits = student(input_ids, route=mask) # each linear: where(mask, W4A4(x, W_pre), WeightOnly(x, W_dec))
-    targets  = positions whose next label != -100
-    loss = KL(softmax(t_logits[targets]) || softmax(s_logits[targets]))
-    loss.backward()                          # STE through every rounding
-    AdamW step on trainable masters (W_pre; W_dec unless frozen)
-    re-quantize the cached quantized weights from the masters
-```
+<p class="rd-cap">Training facts are App. A.2 and Table 4. The model has 64 blocks (App. A.2); the drawing shows the idea, not the blocks.</p>
 
-**Inference:**
+<p class="rd-take"><b>A prefiller upgrades a model you cannot retrain, without touching its file.</b> Its results are on page 15.</p>
 
-```text
-prefill: for each block i:   [ODP] start loading block i+1 into the free slot
-                             run block i on the prompt with W4A4 NVFP4 weights -> K_i, V_i
-         [ODP] restore the decode weights that the two slots borrowed
-decode:  repeat: run all resident weight-only blocks on 1 token, attend to K, V, sample
-```
+</article>
 
-### ODP: why streaming weights can be free { #odp }
+<article class="rd-page" id="evidence" data-part="Does it work?" data-draw="fmt-res" markdown>
 
-Prefill compute grows with prompt length, but loading the prefill checkpoint is a fixed cost, so the longer the prompt, the better it hides (§2.5). Two GPU buffers suffice: while block \(i\) computes, block \(i+1\) loads. Each block's time is roughly \(\max(\text{load}, \text{compute})\) (💻 the repo's benchmark states it exactly so, [`offload_forward.py`](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/kernels/prefill/offload_forward.py#L1-L12)). The buffers are carved out of decode weights, which are idle during prefill, and restored before generation. That's why the device weight memory doesn't grow; the cost is extra SSD reads (§2.5).
+<p class="rd-crumb"><b>Result 1</b> Measures accuracy on two test types, against rung 1. A win: higher accuracy at equal cost.</p>
 
-<div class="rd-widget" id="dq-odp" role="group" aria-label="ODP latency explorer"><noscript>This widget needs JavaScript.</noscript></div>
-<script src="assets/widget-odp.js"></script>
-<p class="rd-widget-caption"><strong>Try this:</strong> drag the prompt to 1K and read the readout: the GPU waits on the SSD and ODP is slower than plain BF16. Then drag to 16K and watch the orange SSD bars fit inside the compute bars. Finally drop the SSD to 2 GB/s and see the crossover move right. <em>This is our cost model, not a measurement:</em> per-layer times from Table 11 (Qwen3-8B at 16K), scaled linearly for projections and quadratically for attention; 3.64 GB checkpoint + 0.20 GB carve-out from App. C.1; the 5.7 GB/s default comes from the repo's benchmark notes. It reproduces 1.45× at 16K (the paper measures 1.47×) but crosses over near 5K, where the paper's measured curve crosses near 8K (Fig. 6a), and it underestimates NVFP4 at 32K by about 11%.</p>
+## Does format disaggregation help, and on which tasks?
 
-!!! paper "Measured (§3.2, Table 10)"
-    Above 16K context, ODP adds under 5% to resident NVFP4 prefill latency on Qwen 3 and under 8% on Gemma 3; the overhead comes from the cold first block and synchronization. At 16K the streamed stack is still 1.47× faster than BF16 on Qwen3-8B and 1.58× on Gemma3-12B.
+1. **Two kinds of test.** **Decode-heavy**: GSM8K, MATH-500 and MMLU-Pro, with long answers. **Prefill-heavy**: RULER, with long prompts and 30–128-token answers (§3.1, App. A.5).
+2. **Each phase hurts different tests.** On most models, rounding only decode costs 2–4× more decode-heavy accuracy than rounding only prefill. On prefill-heavy tasks the order flips, on 7 of 8 models (§2.2).
+3. **Decode-heavy gains on every format.** Qwen 3: +1.9 for NVFP4, +4.5 for LUT3, +2.5 for LUT2 (§3.2). Table 1 rounds the LUT2 gain to 2.4. [[+4.5 | decode-heavy points, LUT3, Qwen 3]]
+4. **Prefill-heavy barely moves.** Under 1.3 points either way. Prefill did not change, so this is expected (§3.2).
+5. **Gemma 3 agrees.** +3.1, +3.7 and +1.8 points decode-heavy for the same three formats (§3.2).
 
-### One worked example by hand { #worked }
+<p class="rd-cap">Bars are Table 1 family means (Qwen 3: four sizes; Gemma 3: three). The 2–4× and 7-of-8 figures are from §2.2.</p>
 
-Qwen3-8B, a 16K-token prompt, LUT2 decode, full disaggregation with ODP, on DGX Spark:
+<p class="rd-take"><b>Format disaggregation is a small, free win on long answers.</b> Next: what a separate prefill model adds.</p>
 
-1. **Storage.** Decode weights stay resident: 4.66 GB on device (Table 1). The NVFP4 prefill checkpoint, 3.64 GB, sits on SSD (App. C.1).
-2. **Prefill.** Borrow two block-sized buffers from decode memory. Load block 1 (a cold start), then overlap: each block computes for about 71 ms (our model) while the next loads in about 18 ms at 5.7 GB/s. Total ≈ 2.6 s versus 3.8 s for BF16, i.e. the 1.47× in Table 1.
-3. **Hand-off.** 36 layers of K/V, about 2.4 GB in BF16 (primer), are left in the cache, and the carve-out is restored.
-4. **Decode.** Each token streams 4.66 GB of mostly 2.5-bit weights and runs 3.82× faster than BF16 decode (Table 1).
-5. **Accuracy.** Averaged over the Qwen 3 family: 45.5% decode-heavy and 76.6% prefill-heavy, versus 38.4% and 64.1% for 2-bit weight-only, which is also 1.47× *slower* at prefill (Table 1).
+</article>
 
-So what does this look like in code you can run on a laptop, and does the "rescue a broken decoder" effect show up even in a toy?
-{ .rd-next }
+<article class="rd-page" id="full-results" data-part="Does it work?" data-draw="full-res" markdown>
 
-## Build a toy version { #toy }
+<p class="rd-crumb"><b>Result 2</b> Same tests as page 13, now against weight-only too. A win: beat weight-only with faster prefill.</p>
 
-!!! take "Educational simplification"
-    This toy keeps the mechanism of §2.6: a frozen 2-bit weight-only decoder, a separate NVFP4 W4A4 prefill copy of every linear, per-token routing by a mask, STE, and KL distillation on answer positions only. It drops the FP8 block scales and global scales, static activation scales, real kernels, chat data, and ODP. The model is a 2-layer transformer (d = 32) trained to copy a 24-token prompt. It is not the paper's implementation.
+## Does a separate prefill model pay off at 2 bits?
 
-```python
---8<-- "papers/2609.26333-disaggregated-quantization/assets/toy.py"
-```
+1. **Weight-only is the bar to beat.** 2-bit weight-only scores 38.4 decode-heavy on Qwen 3, but prefill runs at 1.00× (Table 1).
+2. **Rungs 1 and 2 fall short.** Autocast LUT2 scores 34.8. With format disaggregation, 37.2 (Table 1).
+3. **Rung 3 jumps past it.** Full disaggregation scores 45.5 decode-heavy, with 1.49× prefill (Table 1).
+4. **Prefill-heavy jumps further.** 76.6 against 64.1 for weight-only (Table 1). §3.2 prints the gain over rung 1 as 5.3; Table 1 gives 15.3. [[76.6 | prefill-heavy, 2-bit, full disagg., Qwen 3]]
+5. **At 3 bits it roughly ties.** 61.7 against 61.5 for weight-only, still with fast prefill (Table 1).
 
-Real output (CPU, 57 s, PyTorch 2.13):
+<p class="rd-cap">Bars are Table 1 Qwen 3 family means; speedups are Qwen3-8B. The 5.3 vs 15.3 mismatch is ours to flag.</p>
 
-```text
-teacher (fp32, both phases)              acc=0.999
-2-bit weight-only, both phases           acc=0.505
-+ RTN NVFP4 prefiller (untrained)        acc=0.607
-  QADD step   0  KL(teacher||student)=3.0563
-  QADD step 100  KL(teacher||student)=0.8200
-  QADD step 200  KL(teacher||student)=0.5793
-+ QADD-trained NVFP4 prefiller           acc=0.844
-```
+<p class="rd-take"><b>Its own prefill weights beat 2-bit weight-only on both test types.</b> Next: a model nobody retrained.</p>
 
-**Read it like Table 7.** Rounding the whole model to 2 bits halves copy accuracy. Just swapping in an untrained ("round-to-nearest") 4-bit prefill copy helps a bit (0.505 → 0.607), because the prompt K/V become more precise. *Training* that prefiller against the frozen decoder does most of the work (→ 0.844): the prefill weights learn to write a cache this specific broken decoder can read. The paper sees the same ordering at 27B scale (App. B.4).
+</article>
 
-!!! take "A bug we hit, and why it matters"
-    Our first version fake-quantized the prefill **activations** without a straight-through estimator. Gradients then reached earlier layers only through the block scale, and QADD made accuracy *worse* (0.61 → 0.28) while the loss wobbled. Wrapping the activation rounding in `ste(x, nvfp4(x))` fixed it. The repo does the same with its `fake_quant_ste` ([nvfp4.py L96–L116](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/quantizers/nvfp4.py#L96-L116)). If you implement QADD yourself, check activation STEs first.
+<article class="rd-page" id="rescue" data-part="Does it work?" data-draw="rescue" data-fast markdown>
 
-## Paper ↔ code map { #code-map }
+<p class="rd-crumb"><b>Result 3</b> The prefiller from page 12. Measures one full benchmark run, against the GGUF alone.</p>
 
-Repo: [IST-DASLab/disaggregated-quantization](https://github.com/IST-DASLab/disaggregated-quantization) at commit `4a99d6e`. **No license file**, so by default all rights are reserved; we quote only a few words and link everything.
+## How much can a prefiller rescue a 1-bit model?
 
-| Paper component | Code | Notes |
-|---|---|---|
-| Mask from SFT labels (§2.1, App. A.1) | [`dual.py` `prefill_mask_from_labels`, `quant_phase`](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/quantizers/dual.py#L20-L51) | a global mask set by a context manager; with no mask, "more than one token" means prefill |
-| Activation quantization on prefill only | [`dual.py` `_DualActMixin`](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/quantizers/dual.py#L54-L66) | the running-max activation observer also only looks at prefill positions |
-| Format-disaggregated NVFP4 (§2.3) | [`DualSharedNVFP4Linear`](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/quantizers/dual.py#L69-L87) | `--quantizer nvfp4pdshared` |
-| Fully-disaggregated NVFP4 (§2.4) | [`DualSplitNVFP4Linear`](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/quantizers/dual.py#L90-L153) | a second `decode_weight` parameter; `nvfp4pdsplit` |
-| LUT3/LUT2 non-, format-, fully-disaggregated | [`dual.py` Lloyd43/21 classes](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/quantizers/dual.py#L274-L572) | `...upcastboth`, `...upcast`, `...split` |
-| LUT grids (App. A.3) | [`grids.py`](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/quantizers/grids.py#L70-L93) | match the paper's values exactly |
-| Two-level scaling, STE | [`blocked.py`](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/quantizers/blocked.py#L1-L46) | `GLOBAL_DEN = 6 × 448 = 2688` |
-| Prefillers for frozen decoders (§2.6, App. A.2) | [`frozen_decode.py` `NVFP4FrozenDecodeLinear`](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/quantizers/frozen_decode.py#L87-L141) | decode weight is a non-persistent buffer, so it never lands in checkpoints or exports |
-| KL(teacher‖student) loss (§3.1) | [`qad.py`](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/training/qad.py#L658-L668) | Liger fused JSD with β = 0, which reduces to forward KL |
-| Routing during the training step | [`qad.py`](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/training/qad.py#L760-L824) | the mask context also wraps `backward()` |
-| ODP benchmark (§2.5, App. C.1) | [`kernels/prefill/offload_forward.py`](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/kernels/prefill/offload_forward.py) | resident, SSD and RAM modes; checked bitwise against the resident path |
-| ODP in llama.cpp | [IST-DASLab/disaggregated-llama.cpp](https://github.com/IST-DASLab/disaggregated-llama.cpp) | `--odp-blocks` flag (we didn't read this fork in depth) |
+1. **The 1-bit model is badly broken.** IQ1_S scores 29.04 on MMLU-Pro. Full precision scores 84.62 (Table 5).
+2. **Add the trained prefiller.** Same decoder file, now 61.54. That is more than double (Table 5). [[+32.50 | MMLU-Pro points at IQ1_S]]
+3. **Images too, without image training.** MMMU-Pro rises from 24.39 to 59.65, though training was text only (Table 5, §3.2).
+4. **The gain shrinks as decoders improve.** +19.71 at IQ1_M, +7.42 at IQ2_XXS, under 3 points from IQ2_S up (Table 5).
+5. **At 3 bits it hurts a little.** Q3_K_XL loses 0.62 on MMLU-Pro and 1.97 on MMMU-Pro (Table 5).
 
-### Where the code differs from, or adds to, the paper { #code-diffs }
+<p class="rd-cap">All scores are Table 5: one evaluation per format, prefiller at step 980. Formats run from about 1 to 3 bits.</p>
 
-!!! code "The mask must survive the backward pass ([`dual.py` L20–L34](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/quantizers/dual.py#L20-L34))"
-    Gradient checkpointing recomputes the forward during backward. If the phase mask were already cleared, every position would silently recompute as decode and the gradients would belong to a different model. The paper doesn't mention this; it's the kind of detail that breaks a reimplementation.
+<p class="rd-take"><b>A prefiller rescues broken decoders and slightly hurts good ones.</b> Next: is that the training, or just 4-bit precision?</p>
 
-!!! code "Training computes both pathways for every token ([`DualSplitNVFP4Linear.forward`](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/quantizers/dual.py#L138-L153))"
-    Under a mixed mask, the layer computes the prefill output *and* the decode output for all positions, then selects with `torch.where`. Split-weight training therefore roughly doubles linear-layer compute and doubles optimizer state, consistent with Table 4 doubling the GPUs for fully-disaggregated Qwen3-8B and Gemma-3-12B.
+</article>
 
-!!! code "A stale flag description ([`qad.py` L319–L321](https://github.com/IST-DASLab/disaggregated-quantization/blob/4a99d6e02817a796bfe3f3d7a5edbf75aeb9f4ba/qad/training/qad.py#L319-L321))"
-    `--include-prefill-loss` is described as "paper behaviour", yet the paper scores response targets only (§2.1, App. A.1). The default (flag off) matches the paper, and we found no launcher that turns it on. Treat the help text as out of date.
+<article class="rd-page" id="rtn-vs-trained" data-part="Does it work?" data-draw="rtn" markdown>
 
-!!! paper "vs. the model card: which speedup will you get?"
-    The paper reports 1.78× TTFT at 8K for the 27B prefiller in llama.cpp (§3.2). The Hugging Face card says those numbers used custom FlashInfer kernels it hasn't released, and that the released path gets "closer to 1.3x" (model card, "Format" section). That's not a contradiction, but reproducers should expect the lower number.
+<p class="rd-crumb"><b>Result 4</b> Splits page 15's gain in two. Same decoders, against an untrained 4-bit prefill copy.</p>
 
-### Hyperparameters that quietly matter { #hparams }
+## Is it the training, or just the 4-bit precision?
 
-- A **constant learning rate of 3×10⁻⁶** with 100 warmup steps, for about 2,450 steps on 100M tokens (Table 3). Tiny by fine-tuning standards: QADD nudges, it doesn't retrain.
-- **Fused layers share one global scale** (q/k/v, gate/up) because vLLM collapses them at load time (App. A.3; `blocked.py` docstring).
-- **Static activation scale from a running-max observer**, matching what the serving engine applies (App. A.3).
-- For the 27B prefiller, the **linear-attention gates `in_proj_a/b` stay frozen in BF16**, because quantizing them destabilized training (App. A.2).
-- The 27B corpus is **self-distilled reasoning traces** (the teacher's own outputs), not Tülu 3, because Tülu lacks reasoning traces. Sequences are **dropped rather than truncated** so the end of the reasoning block isn't cut off (App. A.2).
+1. **Make an untrained prefill copy.** Round the full model straight to NVFP4: **round-to-nearest** (RTN), with no QADD (App. B.4).
+2. **Precision alone helps a lot.** IQ1_S rises from 29.04 to 48.39 on MMLU-Pro (Tables 5, 7).
+3. **Training adds 13 more.** The QADD prefiller reaches 61.54, which is 13.15 above RTN (Table 7). App. B.4 rounds it to 13.1. [[+13.15 | MMLU-Pro points from training, IQ1_S]]
+4. **On images, training is most of it.** MMMU-Pro goes 24.39 → 30.29 with RTN, and 59.65 trained (Tables 5, 7).
+5. **Prefillers partly transfer.** The IQ1_M prefiller gives the IQ1_S decoder 65.02 on MMLU-Pro, beating its own 61.54 (Table 7).
 
-### What's missing and how to run it { #missing }
+<p class="rd-cap">Weight-only bars are Table 5; RTN, trained and swapped prefillers are Table 7. One run each.</p>
 
-The launchers target SLURM with containers, with a default of 4 GPUs per node × 2 nodes (README); core runs used 8–32 B300 GPUs (Table 4). There's no laptop path. Recorded results and table generators *are* included, so you can regenerate every table from the logged numbers without a GPU:
+<p class="rd-take"><b>Precision and training both matter; training matters most at the lowest bits.</b> Next: is the first token actually faster?</p>
 
-```bash
-git clone https://github.com/IST-DASLab/disaggregated-quantization && cd disaggregated-quantization
-python notebooks/table_generators/generate.py all --check      # rebuild tables from recorded results
-cd qad && MODEL=Qwen/Qwen3-4B ./bin/run_qad.sh --quantizer nvfp4pdshared   # needs their cluster setup
-```
+</article>
 
-We did not run either here.
+<article class="rd-page" id="speed" data-part="Does it work?" data-draw="speed" markdown>
 
-## Try the released model { #try-model }
+<p class="rd-crumb"><b>Result 5</b> Measures time, not accuracy, against weight-only or BF16. Uses ODP from page 11.</p>
 
-[ISTA-DASLab/Qwen3.8-27B-NVFP4-prefiller](https://huggingface.co/ISTA-DASLab/Qwen3.8-27B-NVFP4-prefiller) (Apache-2.0) holds NVFP4 prefill blocks for **four** decoders: `IQ1_S`, `IQ1_M`, `IQ2_XXS`, `IQ2_S`. The paper trained eight (Table 5); the 3-bit ones, where prefillers slightly hurt, aren't released. Each variant is 64 GGUF parts, one per transformer block, and is paired with the matching Unsloth GGUF decoder.
+## How much sooner does the first token arrive?
 
-Per the card, it needs a Blackwell consumer GPU (RTX 50-series `sm_120` or GB10 `sm_121`), built from the authors' llama.cpp fork:
+1. **Time to first token at 8K.** IQ1_S alone in llama.cpp takes 12.27 s. With the streamed NVFP4 prefiller, 6.90 s (§3.2). [[1.78× | faster first token at 8K, Qwen3.8-27B]]
+2. **From 4K to 32K: 1.38× to 1.78×.** The speedup holds across the measured prompt lengths (§3.2, Fig. 1).
+3. **Shorter prompts get slower.** Below 4K, SSD loading makes ODP lose to weight-only (§3.2, Fig. 1).
+4. **The 8B stack agrees.** Qwen3-8B prefill at 16K takes 3,801 ms in BF16. NVFP4 is 1.49× faster, streamed 1.47× (Table 10).
+5. **Bigger models gain more.** At 16K the streamed speedup rises from 1.12× at Qwen3-0.6B to 1.47× at 8B (Table 10).
 
-```bash
-git clone https://github.com/IST-DASLab/disaggregated-llama.cpp.git llama.cpp && cd llama.cpp
-cmake -B build -DLLAMA_BUILD_BORINGSSL=ON -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
-./build/bin/llama-server -ngl 99 \
-    -hf unsloth/Qwen3.8-27B-GGUF:IQ1_S \
-    --odp-blocks ISTA-DASLab/Qwen3.8-27B-NVFP4-prefiller
-```
+<p class="rd-cap">Times are §3.2 and Table 10. The 27B run is llama.cpp; the 8B stack uses vLLM kernels on DGX Spark (App. C.1).</p>
 
-!!! take "What we ran: nothing"
-    Our machine has no Blackwell GPU and 11 GB of RAM, and there is no smaller sibling checkpoint, so we could not validate this snippet. It comes from the model card. We swapped in the model page's current repo id; the card's command uses an older name, which redirects to it.
+<p class="rd-take"><b>Long prompts get a real speedup; short chats do not.</b> Next: does the free rung scale to huge models?</p>
 
-**Gotchas from the card:** the prefill variant must match the decoder it was trained against (see Table 7 for what happens otherwise). The server may split a prompt to snapshot the recurrent state, and ODP then re-streams the whole checkpoint for each split; the card suggests `-cram 0 -ctxcp 0` when benchmarking. Micro-batch `-ub` defaults to 8192 so the checkpoint streams once per batch.
+</article>
 
-Does it hold up beyond one model? The core experiments cover seven models and three formats.
-{ .rd-next }
+<article class="rd-page" id="ptq-scale" data-part="Does it work?" data-draw="ptq" markdown>
 
-## Part III: Does it actually work? { .rd-part }
+<p class="rd-crumb"><b>Result 6</b> Rung 2 with no training. Paired tests, four repeats, against uniform 4-bit rounding.</p>
 
-## ⚡ The evidence { #evidence }
+## Does the free version hold up at 2.8T parameters?
 
-**The metrics.**
+1. **No training at all.** Round eight large models to 4 bits, then switch off activation rounding at decode only (§3.3).
+2. **11 of 13 go up.** Across MMLU-Pro and MMMU-Pro, point estimates improve in 11 of 13 pairs (§3.3, Table 2). [[11 / 13 | model–benchmark pairs improved]]
+3. **Six are significant.** Paired per-item tests at p < 0.05; none is significantly worse (§3.3, App. A.5).
+4. **The gains are small.** From −0.21 to +1.13 points. The largest is Gemma-4-31B on MMMU-Pro (Table 2).
+5. 🧠 **No correction for many tests.** The paper says so (App. A.5). Thirteen tests at 0.05 expect 0.65 false hits; six is well above that.
 
-- **Decode-heavy (DH)** accuracy: mean of GSM8K, MATH-500 and MMLU-Pro as generative, chain-of-thought tasks, with Qwen 3 reasoning both on and off. Long answers, so decode dominates (§3.1, App. A.5).
-- **Prefill-heavy (PH)** accuracy: RULER's 13 long-context tasks (retrieval, multi-hop tracing, aggregation, QA) at 4K–32K context, with answers of 30–128 tokens (App. A.5).
-- Both are **family means** across model sizes, each averaged over the last five training checkpoints. The error bars are ±2 std over those checkpoints *within one run*, not across seeds (§3.1).
-- Speed: **prefill speedup** on the transformer stack at 16K (DGX Spark), and **decode speedup** as batch-1 per-token latency in vLLM, both relative to BF16 (Table 1).
+<p class="rd-cap">Δ values and significance are Table 2. Kimi-K3 uses MXFP4; Qwen3.8-2.4T's reference is FP8 (Table 2). 0.65 is our arithmetic.</p>
 
-**How to read Table 1.** Read it in 2-bit and 3-bit groups of four rows. "Weight-only" is the accurate-but-slow-prefill baseline; the unlabelled LUT row is the non-disaggregated autocast; then "+Format disagg." and "+Full disagg." The +ODP row has identical accuracy to +Full, since it's the same checkpoint moved to SSD.
+<p class="rd-take"><b>The free rung-2 switch helps a little, even at trillion scale.</b> Next: what a careful reviewer would still ask.</p>
 
-<div class="rd-widget" id="dq-table1" role="group" aria-label="Table 1 explorer"><noscript>This widget needs JavaScript.</noscript></div>
-<script src="assets/widget-table1.js"></script>
-<p class="rd-widget-caption"><strong>Try this:</strong> stay on the 2-bit group and switch between decode-heavy and prefill-heavy. On decode-heavy, the blue format bar gains a little over amber; on prefill-heavy it gains nothing (it even dips), while the violet full-disaggregation bar jumps past the grey weight-only bar. Hover or tab onto a bar for its speed and memory. (All numbers from Table 1; the violet bar shows the +ODP cost row.)</p>
+</article>
 
-**The results that carry the argument:**
+<article class="rd-page" id="reviewer" data-part="Your move" data-draw="reviewer" markdown>
 
-1. **Each phase has its own sensitivity** (§2.2, Fig. 4). Quantizing *only decode* to NVFP4 costs 2–4× more decode-heavy accuracy than quantizing only prefill (up to 7× on Gemma3-1B). On prefill-heavy tasks the order flips: prefill-only quantization costs 1.1–4.1× more, on seven of eight models. This is what licenses treating them separately.
-2. **Format disaggregation is a free, mostly decode-side win** (§3.2). Decode-heavy accuracy rises by 1.9 / 3.1 points (NVFP4), 4.5 / 3.7 (LUT3) and 2.5 / 1.8 (LUT2) for Qwen 3 / Gemma 3, with prefill-heavy changes under 1.3 points, at identical storage and slightly faster decode.
-3. **Full disaggregation is the big low-bit win** (§3.2, Table 1). At 2-bit on Qwen 3: 45.5 DH and 76.6 PH, against 34.8 / 61.3 for non-disaggregated LUT2 and 38.4 / 64.1 for 2-bit weight-only, while prefill stays 1.47–1.49× faster than weight-only. At 3-bit it roughly matches weight-only (61.7 vs 61.5 DH) with fast prefill.
-4. **Prefillers rescue off-the-shelf 1-bit models** (§3.2, Table 5):
+<p class="rd-crumb"><b>Your move 1</b> Our critique of pages 13–18.</p>
 
-<figure class="rd-fig" markdown>
---8<-- "papers/2609.26333-disaggregated-quantization/assets/table5.svg"
-<figcaption><strong>What to notice:</strong> the gain collapses as decoders get better. It's +32.5 at IQ1_S and +19.7 at IQ1_M, under a point from Q2_K_XL up, and slightly negative at 3 bits (−0.6). On MMMU-Pro the 3-bit losses are larger, −2.0 to −2.8 points. A prefiller helps when the decoder is truly broken. (Numbers from Table 5, one evaluation per format.)</figcaption>
-</figure>
+## What would a careful reviewer question?
 
-5\. **The simplest version scales** (§3.3, Table 2). Without any training, just turning off activation quantization at decode (4-bit PTQ) on eight models up to 2.8T parameters improves 11 of 13 model–benchmark pairs. Six gains are significant and no losses are, under per-item paired sign-flip tests with four repeats (App. A.5). The effects are small: from −0.21 to +1.13 points.
+1. 🧠 **Multi-turn is untested.** Earlier answers were cached by decode weights. Rebuilt later through prefill, they could look different (§5).
+2. 🧠 **Error bars are not seeds.** They span five late checkpoints of one run (§3.1, App. A.5). Several gains are under 2 points.
+3. 🧠 **Batch size one only.** Decode is memory-bound at batch one (§1.1). Batched serving is not evaluated (§5).
+4. 🧠 **The headline bundles two effects.** Of the +32.50, untrained precision gives 19.35 and training 13.15 (Tables 5, 7).
+5. 🧠 **Answers get longer.** With a prefiller, IQ2_XXS truncation on MMLU-Pro rises from 1.25% to 3.39% (Table 8).
+6. 🧠 **Steelman: the big gains are big.** +10.7 and +32.5 points dwarf checkpoint wobble. The paper flags most limits itself (§5, App. B.5).
 
-!!! paper "A number that doesn't match its table (§3.2 vs Table 1)"
-    The text says full disaggregation gains "5.3" prefill-heavy points over non-disaggregated LUT2 on Qwen 3. Table 1 gives 61.3 → 76.6, i.e. **+15.3**, and the LaTeX source agrees with the table. The other seven numbers in that sentence match Table 1, so this looks like a typo that *understates* the result.
+<p class="rd-cap">Pointers mark the evidence behind each concern. The pills are our judgment; 19.35 and 13.15 are our arithmetic.</p>
 
-**What the ablations prove:**
+<p class="rd-take"><b>Trust the big low-bit gains; treat 1–2-point gains as suggestive.</b> Next: what this means for your own GPU.</p>
 
-- **Separating everything else doesn't help** (App. B.1, Fig. 7). Also duplicating embeddings, the head and norms (26% of Qwen3-0.6B's parameters) gives no discernible decode-heavy gain, so the linear layers carry the specialization.
-- **Training beats the format** (App. B.4, Table 7). With the IQ1_S decoder, a round-to-nearest NVFP4 prefill copy gets 48.4 MMLU-Pro, while the QADD-trained one gets 61.5 (MMMU-Pro: 30.3 vs 59.7).
-- **Prefillers are only partly interchangeable** (Table 7). The IQ1_S decoder does best on MMMU-Pro with its own prefiller (59.65, vs 52.60 and 47.05 with others), but on MMLU-Pro it does *better* with the IQ1_M prefiller (65.02 vs 61.54).
-- **Accuracy isn't bought with more tokens, at least at 1 bit** (App. B.5, Table 8). On MMMU-Pro, IQ1_S's mean response shrinks 54.8% and truncation falls from 24.6% to 4.2%. On MMLU-Pro, though, mean lengths *rise* 5–63% across formats.
+</article>
 
-**What isn't shown:**
+<article class="rd-page" id="verdict" data-part="Your move" data-draw="verdict" data-fast markdown>
 
-- **No seeds.** Error bars cover checkpoint-to-checkpoint wobble within one run (§3.1), and the 27B numbers are a single evaluation each (Table 5).
-- **No batching.** Every speed number is batch 1 (§5). Decode stops being memory-bound as batch grows, which is the regime cloud serving lives in.
-- **Some speedups are proxies.** LUT prefill speedups reuse NVFP4 timings and exclude the weight-conversion cost of autocast; non-disaggregated LUT decode timings add a dummy activation-quantize call (App. B.3). This is stated honestly, but it flatters the baselines' costs *and* the method's comparisons in ways the table doesn't show.
-- **No multi-turn or agentic use** (§5). This matters: see the reviewer's corner.
+<p class="rd-crumb"><b>Verdict</b> For the goal on the cover: long prompts on one local GPU. Uses pages 15 and 17.</p>
 
-## Part IV: Think like a reviewer { .rd-part }
+## Should you run a 1-bit 27B with a prefiller on your own GPU?
 
-## Why this way and not another { #why-not }
+1. **The rescue is real.** IQ1_S with its prefiller scores 61.54 on MMLU-Pro, up from 29.04 (Table 5).
+2. **But a 2-bit file alone beats it.** IQ2_XXS weight-only scores 70.50 with no prefiller. With one, 77.93 (Table 5). [[70.50 > 61.54 | 2-bit alone vs 1-bit + prefiller]]
+3. **Long prompts are the sweet spot.** The first token is 1.78× faster at 8K, but slower below 4K (§3.2, Fig. 1). Set the slider to your prompts.
+4. **It needs fast FP4 hardware.** Prefill speed comes from native NVFP4 math. Speed was measured on DGX Spark (§1.1, App. C).
+5. 🧠 **Our verdict: start at 2 bits.** Take the smallest decoder that fits, and add its prefiller for long prompts. Drop to 1 bit only if 2 won't fit.
 
-| Choice | Obvious alternatives | Why this one | What would likely happen otherwise | Evidence |
-|---|---|---|---|---|
-| Route by the SFT label mask | Separate training runs per phase; route by position index | The mask already encodes prompt vs answer in chat data, and one pass trains both halves toward the answer | Separately trained halves never see each other's errors, so the cache written by prefill wouldn't be tuned to *this* decoder | 📄 Table 7: untrained RTN prefill vs trained prefill, 48.4 vs 61.5 at IQ1_S |
-| Loss on answer tokens only | Also distil prompt positions (`--include-prefill-loss`) | The answer is what the user sees; prefill only needs to be useful *to decode* | Would pull prefill toward mimicking the teacher's per-position predictions, which the 1-bit decoder can't exploit | 🧠 not ablated in the paper; the flag exists in the code, so it's a cheap experiment |
-| Disaggregate only linear layers | Also split embeddings, head, norms | Linear layers are where the format differs; duplicating the rest costs memory | No gain | 📄 App. B.1, Fig. 7 |
-| NVFP4 W4A4 for prefill | FP8 W8A8; INT4 | Native on Blackwell, the most aggressive hardware compute format, and what the paper measures on (DGX Spark) | FP8 would likely be more accurate and less fast; the trade-off isn't measured | 🧠 reasoned |
-| One prefiller per decoder | One universal prefiller for all bit-widths | Each decoder breaks differently | Some transfer, but mismatched pairs lose up to 12.6 points on MMMU-Pro | 📄 §2.4, Table 7 |
-| Stream prefill weights from SSD (ODP) | Keep both resident; offload to host RAM | Keeps GPU weight memory at the decode-only size; on DGX Spark, host RAM *is* device memory, so RAM offload wouldn't free anything | Resident costs +3.9 GB on Qwen3-8B (8.57 vs 4.66 GB) | 📄 Table 1; 💻 `offload_forward.py` notes on GB10's unified memory |
-| Carve buffers out of decode weights | Allocate two new buffers | Zero additional device weight memory | Small but nonzero memory overhead | 📄 §2.5 (the SSD re-read of the carve-out is the cost, App. C.1) |
+<p class="rd-cap">Scores are Table 5; speed is §3.2. File sizes are not given in the text, so "fits" is your check. The verdict is ours.</p>
 
-**The decision that matters most** is training through the cache. Formats alone (rung ②) buy a point or three. The large numbers (+10.7 DH for Qwen LUT2, +32.5 at 27B IQ1_S) appear only when prefill gets its own *trained* weights, and Table 7 shows that most of the 1-bit gain needs the training, not just the extra precision.
+<p class="rd-take"><b>A prefiller is a strong add-on for long prompts, not a reason to drop to 1 bit.</b> Multi-turn chat remains untested (§5).</p>
 
-## What's genuinely new { #novelty }
+</article>
 
-<figure class="rd-fig" markdown>
---8<-- "papers/2609.26333-disaggregated-quantization/assets/lineage.svg"
-<figcaption><strong>What to notice:</strong> the two left-hand threads, quantization (grey and amber) and serving (blue), ran in parallel for years. DQ is where they meet. (Works from the paper's references and related work, §4; dates are publication years as cited.)</figcaption>
-</figure>
+<article class="rd-page" id="code-map" data-part="Your move" data-draw="release" markdown>
 
-**Borrowed:**
+<p class="rd-crumb"><b>Your move 2</b> What you can reuse from pages 9–12.</p>
 
-- Quantization-aware distillation with STE and a frozen teacher (Polino et al. 2018; Xin et al. 2026 for NVFP4).
-- NVFP4 and its accuracy recipes (Egiazarian et al. 2026a), and 2–3-bit weight-only as the Pareto sweet spot (AQLM, ParetoQ, QuEST).
-- Prefill/decode disaggregation with the KV cache as interface (Mooncake, TetriInfer).
-- Weight offloading amortized over work (FlexGen, which amortizes over batch size).
-- Phase-specific precision itself (Chen et al. 2025a; Mix-quant, Lu et al. 2026; §4).
+## What did the authors release, and what would rebuilding cost?
 
-**New:**
+1. **Code and a llama.cpp fork.** The authors release code for the main results and a llama.cpp fork with ODP (§5).
+2. **Trained 27B prefillers.** They are on the Hugging Face Hub (§5). Each was trained for one specific decoder (§2.6, App. B.4).
+3. **Core runs need 8–32 GPUs.** B300s; full disaggregation doubles the count for the 8B and 12B models (Table 4).
+4. **A 27B prefiller needs 64.** The decoder stays in memory as BF16 while only the prefill copy trains (App. A.2, Table 4). [[64 | B300 GPUs to train one 27B prefiller]]
+5. **Some speedups are proxies.** LUT prefill reuses NVFP4 timings and leaves out the weight-conversion cost (App. B.3).
 
-- Using the **SFT label mask as a routing signal**, so one distillation pass trains two formats, or two weight sets, toward one response objective. It covers shared, split and frozen-decoder setups (§2.1).
-- The **prefiller**: adapting only prefill to a black-box pre-quantized decoder, and showing it more than doubles a released 1-bit model's accuracy (§2.6, Table 5).
-- **ODP's specific trick**: amortizing SSD loading over *prompt length* at batch 1, with buffers borrowed from idle decode weights (§2.5). FlexGen amortizes over batch size instead.
-- A clean **measurement** that phase sensitivity flips with workload (§2.2).
+<p class="rd-cap">Everything here is from §5, Table 4 and Apps. A.2 and B.3. We did not run the code.</p>
 
-!!! take "Why nobody did it before"
-    We think two things had to arrive together. First, hardware W4A4 that is actually fast and accurate (Blackwell's NVFP4, and 2025–26 recipes for it), which gives prefill something worth specializing into. Second, the popularity of sub-2-bit GGUFs for local use, which created a population of badly broken decoders worth rescuing. Before that, "one format for both phases" cost little.
+<p class="rd-take"><b>You can reuse the released prefillers; training your own takes a GPU cluster.</b> Next: experiments worth trying.</p>
 
-## Reviewer's corner { #reviewer }
+</article>
 
-1. **The multi-turn cache problem is bigger than a footnote.** In a chat, turn 2's prompt contains turn 1's *answer*. That answer's K/V were written by decode weights, but if the cache is evicted and rebuilt, they're rewritten by prefill weights, and the paper notes the representations may differ (§5). With a 1-bit decoder and a trained prefiller, the two could differ a lot. Agents and chat are exactly the local-deployment use case ODP targets (§2.5), and this is untested.
-2. **Error bars aren't uncertainty.** The core results average five late checkpoints of *one* run (§3.1, App. A.5). Several of the format-disaggregation gains are 1.8–2.5 points; seed variance for QADD at 100M tokens is unknown. The large-model PTQ table does proper paired tests (App. A.5), but without multiple-testing correction across 13 comparisons.
-3. **Batch 1 is doing a lot of work.** "Decode is memory-bound" holds at batch 1 (§1.1). Under batched serving, decode becomes compute-bound too and activation quantization starts paying for itself again, so format disaggregation's free lunch may shrink. The authors acknowledge this (§5). The practical claim is really about single-user local inference.
-4. **The 27B contamination check is partial.** The distillation traces come from twelve public corpora, including BIG-Bench Hard, OlympiadBench and MATH, which is why those benchmarks were dropped (App. A.2). The check found one exact and two normalized MMLU-Pro matches and three near-duplicates. Small, but MMLU-Pro is the headline benchmark, and the paper admits the check doesn't prove the corpus benchmark-free.
-5. **Some of the 1-bit gain is just "any 4-bit prefill".** RTN NVFP4 prefill lifts IQ1_S from 29.0 to 48.4 on MMLU-Pro with no training (Tables 5 and 7). The trained prefiller adds 13 more points. Both effects are real, but the headline "+32.5 from training a prefiller" bundles them.
-6. **Generation length shifts.** On MMLU-Pro, prefillers raise mean response length by 5–63% and truncation (e.g. IQ2_XXS from 1.25% to 3.39%) (Table 8). "Without modifying the decode checkpoint" doesn't mean without changing decode *cost*; the paper says so plainly in App. B.5.
-7. **Speed is from different stacks.** Accuracy is measured with vLLM on GB300 with GGUF weights dequantized to BF16. Prefill stack speed is on DGX Spark with custom kernels; TTFT is in llama.cpp, with kernels the card says aren't released (App. A.5, App. C.1). Each is reasonable, but no single system shows accuracy and speed together.
+<article class="rd-page" id="whats-next" data-part="Your move" data-draw="ideas" markdown>
 
-!!! take "Steelman"
-    **Criticism: batch 1 only.** → *Likely response:* the paper targets local, single-user deployment (§2.5, §3.2), and in datacenter disaggregated serving, where prefill and decode already live on separate GPUs, full disaggregation costs no extra device memory at all (§2.4). → *Where that leaves us:* the accuracy results are independent of batch size; only the "free decode speedup" part is batch-1-specific.
+<p class="rd-crumb"><b>Your move 3</b> Open problems from §5 and §2.5, plus our ideas.</p>
 
-    **Criticism: no seeds.** → *Likely response:* QADD at 3×10⁻⁶ constant LR for 2.4K steps is a gentle fine-tune from a fixed initialization, and the effects that matter most (+10.7, +15.3, +32.5) dwarf any plausible seed noise. The small effects were double-checked at trillion-parameter scale with paired tests (§3.3). → *Where that leaves us:* trust the big full-disaggregation and prefiller effects; treat individual 1–2-point format-disaggregation gains on small models as suggestive.
+## What could you try next?
 
-## Scope and boundaries { #scope }
+1. **Paper's open problem: multi-turn.** Test whether decode copes with answer caches rebuilt by prefill (§5).
+2. **Paper's open problem: batching.** Measure decode at larger batches, where weight loading is no longer the only cost (§5).
+3. **Paper's idea: streamed encoders.** ODP should also apply to separate input networks, such as encoders (§2.5). It is untested.
+4. 🧠 **For speech: split Whisper.** Its encoder reads 30 s at once; its decoder writes text. Try a W4A4 encoder and a 2-bit decoder, distilled jointly.
+5. 🧠 **Cheapest first: an RTN prefiller.** With no training, it lifted IQ1_S by 19.35 points (Tables 5, 7). Try one on your own low-bit model.
 
-**Where it works (tested):** instruction-tuned dense models from 0.6B to 27B trained with QADD, plus PTQ-only format disaggregation on eight models up to 2.8T parameters (Table 2). Decode formats from about 1 to 4 bits, and NVFP4 prefill, on Blackwell hardware. Single-turn reasoning, image reasoning (MMMU-Pro), and RULER up to 32K. Batch-1 latency.
+<p class="rd-cap">Steps 1–3 are directions the paper names; 4–5 and every position on the map are our guesses.</p>
 
-**Where it probably breaks:**
+<p class="rd-take"><b>The cheapest experiment is an untrained 4-bit prefill copy; the most useful is multi-turn.</b> Then check yourself on the next three pages.</p>
 
-- **ODP on mixture-of-experts.** Every expert's weights must be streamed but only a fraction compute, so loading dominates until very long contexts. The authors say so themselves (§2.5).
-- **Short prompts with ODP.** Below about 4K tokens, loading can't hide and TTFT gets *worse* than weight-only (§3.2, Fig. 1). Chat turns are often this short.
-- **3-bit and above with prefillers.** The gain turns negative (Table 5); better decoders leave nothing to rescue.
-- **Non-Blackwell GPUs.** No native NVFP4 means prefill speed vanishes, though format disaggregation's accuracy logic still applies with other W4A4 formats (🧠, untested).
-- **Multi-turn and agents** (the cache-rebuild issue above).
-- **Base (non-chat) models.** There's no label mask to route by; §3.1 requires post-trained models with a logical input/output split.
+</article>
 
-**What it assumes about resources:** training a prefiller for a 27B model took 64 B300 GPUs (Table 4) and about 95M tokens (App. A.2). Running needs a fast NVMe (the repo notes about 5.7 GB/s on DGX Spark) and an extra SSD footprint of about 12.8 GiB for the 27B prefiller (model card).
+<article class="rd-page" id="quiz" data-part="Check yourself" data-quiz markdown>
 
-## Part V: Beyond the paper { .rd-part }
+<p class="rd-crumb"><b>Check 1</b> From page 9.</p>
 
-## Applications { #applications }
+## In QADD, what decides which path a token takes?
 
-- **Local LLMs on consumer GPUs** (the paper's target, §2.5): run a sub-2-bit 27B model on a 16 GB card, but with prompt handling that behaves like a 4-bit model's. Long-document Q&A and RAG, where prompts are long and answers short, are ideal: ODP hides fully and prefill quality matters most.
-- **Datacenter disaggregated serving** (§3.2): prefill and decode GPUs each hold their own weights anyway, so full disaggregation costs nothing extra in memory and each fleet gets its best format.
-- **Upgrading existing quantized checkpoints** (§2.6): a vendor can ship a "prefiller pack" for popular community GGUFs without retraining or even accessing the decoder's quantization pipeline.
-- 🧠 **Unexpected: speech LLMs.** In an audio-in LLM, the "prompt" is hundreds of audio tokens and the answer is often a short transcript or reply. That's prefill-heavy by construction, so a W4A4 prefiller plus a tiny weight-only decoder fits the workload shape well.
-- 🧠 **Unexpected: on-device RAG over personal documents**, where the SSD already holds the index. Streaming prefill weights from the same drive fits a workload that is heavy on reads anyway.
+- [ ] Its position: the first tokens of each sequence use prefill
+- [x] The fine-tuning label mask: positions with ignored labels use prefill
+- [ ] Whether more than one token is processed at once
+- [ ] A learned router trained by the KL loss
 
-## What to carry forward { #carry-forward }
+<p class="rd-take"><b>The label mask.</b> Prompt positions, whose labels are ignored, take prefill; answer positions take decode (§2.1, App. A.1).</p>
 
-**For the field:**
+</article>
 
-- A "model" at inference is several workloads. Ask what each phase is bound by, and specialize format, weights and residency per phase.
-- A label mask is a free routing signal. Anything that distinguishes input from output tokens can select a pathway, not just a loss.
-- An interface you already have (the KV cache) lets you train one side against a frozen other side, even a black box.
+<article class="rd-page" id="check-format" data-part="Check yourself" data-quiz markdown>
 
-**For your own work:**
+<p class="rd-crumb"><b>Check 2</b> From pages 7 and 13.</p>
 
-- **Whisper-style ASR on device.** Quantize the encoder (compute-bound, all frames at once) to W4A4/W8A8 and the decoder to weight-only 2–4 bits, then distil jointly through the cross-attention memory. Encoder–decoder models make this *easier* than in LLMs, since the split is architectural (the paper notes the same, §2.5).
-- **Streaming TTS or speech LLMs**: separate "read the context" and "emit audio tokens" formats, measured with separate workload-specific metrics, as §2.2 does with DH vs PH.
-- **The debugging lesson from our toy**: when fake-quantizing activations, put an STE on them, or gradients stop at the rounding.
+## Why does format disaggregation barely move RULER scores?
 
-## What's next { #whats-next }
+- [ ] RULER prompts are too long to fit in NVFP4
+- [x] It only changes the decode path, and RULER answers are 30–128 tokens
+- [ ] RULER is scored without a KV cache
+- [ ] Prefill-heavy scores are already at full-precision level
 
-**Follow-up work (found by us):** none yet. The paper appeared on 2026-09-22; OpenAlex lists no citations and a web search turned up only the paper, repo and model card.
+<p class="rd-take"><b>It only touches decode.</b> RULER's work is in the prompt, which still runs the same NVFP4 prefill (§3.2, App. A.5). NVFP4 scores 79.8 there against 84.2 for BF16 (Table 1).</p>
 
-**Open problems the paper names (📄):**
+</article>
 
-- Multi-turn cache-policy robustness: re-prefilled answers versus decode-made K/V (§5).
-- Highly batched serving and agentic behavior (§5).
-- Combining ODP with separate prefill networks connected through learned KV-cache adapters (§2.5, §4).
+<article class="rd-page" id="check-flaw" data-part="Check yourself" data-quiz markdown>
 
-**Open problems we see (🧠):**
+<p class="rd-crumb"><b>Check 3</b> Spot the flaw. From pages 15 and 16.</p>
 
-- Training the decoder to be *robust* to either pathway's cache, to fix the multi-turn issue.
-- Prefillers for MoE models, streaming only the experts the prompt actually routes to.
-- A "universal" prefiller conditioned on the decoder's format, given that Table 7 shows partial transfer.
+## Where does IQ1_S's +32.5 MMLU-Pro gain come from?
 
-## Brainstorm lab { #brainstorm }
+- [ ] All of it comes from QADD training
+- [x] 19.35 points from 4-bit precision alone, 13.15 from training
+- [ ] Training adds nothing beyond an untrained 4-bit copy
+- [ ] Only the prefiller trained with IQ1_S can produce it
 
-**1. What if the prefiller were smaller than the decoder?**
-Prefill only needs to write a useful cache. Could a pruned or narrower network, projecting to the same K/V shape, do it?
+<p class="rd-take"><b>Precision 19.35, training 13.15 (our arithmetic).</b> RTN reaches 48.39 and the trained prefiller 61.54, from 29.04 (Tables 5, 7). The IQ1_M prefiller even scores 65.02.</p>
 
-??? take "Suggested directions (think first)"
-    - Distil a prefiller with half the FFN width, keeping attention projections full size. Measure RULER (PH) vs GSM8K (DH) to see which suffers.
-    - Compare against a learned KV adapter from a smaller model family member (the direction of Heo et al. 2026, cited in §2.5).
-    - An interesting result would be DH staying flat while PH drops, which would suggest decode mostly needs "rough" context.
-
-**2. A laptop experiment: does the toy's ordering survive a real model?**
-Take Qwen3-0.6B, fake-quantize the decode path to LUT2, and train only a prefill copy with QADD on a few million Tülu 3 tokens.
-
-??? take "Suggested directions (think first)"
-    - Scale: 0.6B parameters, fp32 masters for the prefill copy (~2.4 GB) plus a frozen fp16 decoder, sequences of 1K tokens. A single 24 GB GPU could plausibly manage a few hours (🧠 estimate).
-    - Measure GSM8K for weight-only, RTN prefiller and QADD prefiller. You're reproducing Table 7's ordering, not its numbers.
-    - Bonus: flip on `--include-prefill-loss`-style prompt distillation and see if it helps or hurts.
-
-**3. Thought experiment: is the prefiller "cheating"?**
-A trained prefiller for a broken decoder could learn to encode *answers* into the cache, doing the decoder's job.
-
-??? take "Suggested directions (think first)"
-    - Probe: feed a prompt through the prefiller, then decode with the full-precision decoder. If accuracy *drops* versus BF16 prefill, the cache is tuned to the broken decoder's quirks.
-    - Table 8's shorter MMMU-Pro responses hint that the prefiller shapes the decoder's behavior, not just its inputs.
-    - Compare cache similarity (per-layer cosine of K/V) between BF16 and trained prefill as bit-width drops.
-
-**4. Transfer this to speech AI: disaggregate Whisper.**
-The encoder is compute-bound, the decoder memory-bound, and they're already separate networks.
-
-??? take "Suggested directions (think first)"
-    - Encoder in W4A4 or W8A8, decoder in 2–3-bit weight-only; distil the joint model with KL on decoder tokens only, which is QADD with an architectural rather than a mask split.
-    - Metrics: WER on LibriSpeech test-other (long-form decode is short, so compare to a prefill-heavy long-audio set), plus encoder latency on 30 s windows.
-    - Interesting outcome: if a trained W4A4 encoder rescues a 2-bit decoder's WER the way prefillers rescue IQ1_S.
-
-**5. Combine with speculative decoding.**
-A draft model is also a "cheap writer". Could the prefiller's cache serve both the draft and the target?
-
-??? take "Suggested directions (think first)"
-    - Share one prefill cache between a 1-bit draft decoder and a 3-bit verifier decoder, both trained against it with QADD.
-    - Measure acceptance rate versus separate caches.
-
-**6. What if you disaggregate by *reasoning* versus *answer* too?**
-Qwen 3's thinking tokens are decode-phase but aren't the final answer.
-
-??? take "Suggested directions (think first)"
-    - Three pathways: prompt, thinking and final answer, each with a format. Thinking might tolerate lower precision.
-    - The label mask generalizes naturally: the chat template already marks thinking blocks (App. A.2 inserts empty ones).
-
-## Part VI: Lock it in { .rd-part }
-
-## Self-quiz { #quiz }
-
-**1. In QADD, what decides whether a token goes through the prefill or the decode pathway?**
-
-??? answer "Answer"
-    The SFT label mask: positions whose label is ignored (−100, the prompt/user turn) use prefill, and assistant positions use decode (§2.1, App. A.1). A common wrong answer is "the token's position index" or "whether T > 1". The code falls back to T > 1 only when no mask is set, i.e. at plain inference.
-
-**2. Why is decode memory-bound at batch 1, in one sentence with numbers?**
-
-??? answer "Answer"
-    Each weight is used for one multiply-add per token, so a 4096×4096 BF16 layer moves 33.6 MB to do 33.6 MFLOP, about one FLOP per byte, far below what a GPU needs to stay busy (§1.1). The tempting wrong answer is "because it's sequential". Sequential steps set latency, but the reason weight *size* dominates is this reuse ratio.
-
-**3. Format disaggregation improves decode-heavy accuracy by up to 4.5 points but prefill-heavy by under 1.3. Explain why, and why it's still free.**
-
-??? answer "Answer"
-    It only removes error from the decode pathway (no activation quantization, no weight re-quantization), and decode-heavy tasks spend most tokens there. RULER answers are 30–128 tokens, so decode barely matters (§3.2). It's free because the weights and storage are unchanged, prefill still uses the NVFP4 path, and decode actually gets 2–3% faster by skipping the activation-quantize call (App. C.2).
-
-**4. How do prefill weights get any gradient when the loss is only on answer tokens?**
-
-??? answer "Answer"
-    Two routes (App. A.1). (1) The last prompt position runs through prefill but predicts the first answer token, so it's scored. (2) Every answer position attends to the prompt's keys and values, which prefill weights produced. A tempting wrong answer is "they don't; that's why the paper adds a prompt loss". The paper does not; the default code doesn't either.
-
-**5. Why does ODP get *relatively* cheaper as prompts get longer, and why does that fail for mixture-of-experts?**
-
-??? answer "Answer"
-    Loading the prefill checkpoint is a fixed cost while compute grows at least linearly with prompt length, so beyond a crossover (about 8K on DGX Spark for Qwen 3, §2.5) loading hides behind compute. In MoE models, all expert weights must still be loaded, but each token only computes with a few experts, so the compute-to-load ratio is much lower and the crossover moves to extreme lengths (§2.5).
-
-**6. You deploy a 4-bit Whisper-large on a phone. Encoder latency on 30 s clips is your bottleneck; decoding short transcripts is fine. Which rung of the ladder do you try first, and what do you measure?**
-
-??? answer "Answer"
-    Since the encoder is compute-bound, give it a native low-precision compute format (W4A4/W8A8 on the phone's NPU) while the decoder stays weight-only: that's format disaggregation, with the split already architectural. Measure encoder latency and WER on long-context-heavy and decode-heavy sets separately, as §2.2 does. If WER drops too much, move to a separately distilled encoder (full disaggregation). The wrong move is shrinking the decoder further: it isn't your bottleneck.
-
-**7. A 3-bit Q3_K_XL decoder loses 2.0 MMMU-Pro points with a trained prefiller. Give two plausible reasons.**
-
-??? answer "Answer"
-    (1) At 3 bits, weight-only decode is near BF16 (74.3 vs 75.3, Table 5), so the NVFP4 W4A4 prefill, which quantizes activations too, is now the *less* accurate phase: you replaced a good prefill with a worse one. (2) The training corpus is text-only reasoning traces (App. A.2), so there's no pressure to preserve visual-reasoning behavior; the text benchmark barely moves (−0.6), while image reasoning drifts. Longer generations and more truncation (Table 8: 1.39% → 3.53% on MMMU-Pro) may also contribute.
-
-**8. Spot the flaw.** *"Table 5 proves that QADD training is responsible for the +32.5-point MMLU-Pro gain at IQ1_S. So in a new setting where you can't afford training, a prefiller is useless."*
-
-??? answer "Answer"
-    Table 5 compares weight-only (29.0) against *trained* NVFP4 prefill (61.5), which bundles two changes: higher-precision prefill and training. Table 7 separates them. An *untrained* round-to-nearest NVFP4 prefill copy already reaches 48.4, so about 19 of the 32.5 points come from the precision alone and about 13 from training. The first sentence over-attributes, and the conclusion is wrong: an RTN prefiller is a cheap, meaningful win at 1 bit. (The ratio is different at 2 bits: for IQ2_XXS, RTN prefill gets 76.1 vs 77.9 trained.)
-
-**9. You run a community 1.5-bit GGUF of a 14B model on an older GPU with no FP4 tensor cores (so no native NVFP4). Which parts of DQ still help you, and which don't?**
-
-??? answer "Answer"
-    The *speed* half of full disaggregation doesn't transfer: without native W4A4, an NVFP4 prefill copy runs no faster than weight-only. The *accuracy* half does: a higher-precision prefill copy, even untrained RTN, rescued most of IQ1_S's loss at 27B (29.0 → 48.4, Table 7), and a trained one more (→ 61.5). You'd pick a format your GPU computes natively (e.g. FP8 or INT8 W8A8), stream it with ODP if memory is tight, and accept that below ~4K tokens loading won't hide. Format disaggregation (dropping decode activation quantization) is irrelevant here, because a weight-only GGUF never quantized decode activations in the first place. The tempting wrong answer is "nothing applies without NVFP4"; the paper's own ablation says the precision of prefill matters by itself.
-
-## ⚡ Remember this { #remember }
-
-**Prompt reading is compute-bound and answer writing is memory-bound, so give each its own format (and weights), trained together through the KV cache.**
-
-<figure class="rd-fig" markdown>
---8<-- "papers/2609.26333-disaggregated-quantization/assets/remember.svg"
-<figcaption><strong>What to notice:</strong> the only shared contract is the cache, so each side is free to be as fast or as small as its bottleneck wants.</figcaption>
-</figure>
-
-1. **The ladder:** ① one format for both → ② format-disaggregated (same weights, decode drops activation quantization: free, decode-side gains) → ③ fully-disaggregated (own NVFP4 prefill weights: big low-bit gains) → ④ ODP (stream them from SSD: no extra GPU memory once prompts pass about 8K).
-2. **QADD:** the SFT label mask picks the pathway, the loss is on the answer, and gradients reach prefill through the cache, so you can even train a **prefiller** for someone else's frozen 1-bit decoder (29.0 → 61.5 on MMLU-Pro).
-3. **Limits:** batch 1, single-turn, dense models, Blackwell; gains vanish at 3 bits; multi-turn cache rebuilds are untested.
-
-**Sticky phrase:** *Read fast, write small, meet at the cache.*
-
-## Glossary { #glossary }
-
-Arithmetic intensity
-:   FLOPs performed per byte moved from memory; about the token count \(T\) for a linear layer.
-
-Autocast (LUT → NVFP4)
-:   Re-quantizing compact weight-only weights (and activations) into NVFP4 on the fly so tensor cores can run them.
-
-Decode
-:   Generating the answer one token at a time, reading the KV cache; memory-bound at batch 1.
-
-Disaggregated serving
-:   Running prefill and decode on separate accelerators that exchange the KV cache.
-
-E2M1
-:   The 4-bit float element of NVFP4: sign plus magnitudes {0, 0.5, 1, 1.5, 2, 3, 4, 6}.
-
-Format disaggregation
-:   Same weights for both phases, but prefill uses W4A4 compute and decode uses weight-only.
-
-Full disaggregation
-:   Separate, jointly trained prefill (NVFP4) and decode (compact weight-only) weights.
-
-GGUF
-:   llama.cpp's model file format; `IQ1_S`, `IQ2_XXS`, `Q3_K_XL`, etc. are its weight-only schemes.
-
-KV cache
-:   Stored attention keys and values for past tokens, written by prefill and extended by decode.
-
-LUT2 / LUT3
-:   The paper's 2- and 3-bit weight-only formats: block-scaled values snapped to Gaussian-optimized look-up tables.
-
-NVFP4 / NVFP4A16
-:   NVIDIA's 4-bit float with 16-element blocks, FP8 block scales and an FP32 tensor scale; A16 means activations stay BF16 (weight-only).
-
-ODP (offloaded disaggregated prefill)
-:   Streaming prefill weights from SSD block by block through two GPU buffers borrowed from idle decode weights.
-
-Prefill
-:   Processing the whole prompt in parallel to build the KV cache; compute-bound for long prompts.
-
-Prefiller
-:   A prefill checkpoint trained against a specific frozen, pre-quantized decoder.
-
-QAD / QADD
-:   Quantization-aware distillation (a quantized student matches a frozen teacher's distributions); QADD adds per-token pathway routing from the SFT mask.
-
-RTN
-:   Round-to-nearest post-training quantization, with no training.
-
-STE (straight-through estimator)
-:   Forward with the rounded value, backward as if rounding were the identity: `x + (q - x).detach()`.
-
-W*x*A*y*
-:   *x*-bit weights and *y*-bit activations; W4A16 is weight-only, W4A4 quantizes both.
-
-## References and further reading { #references }
-
-- **The paper:** Panferov, Kleinegger, Priyadarshi, Blankevoort, Alistarh. *Disaggregated Quantization: Specializing LLM Prefill and Decode.* [arXiv:2609.26333](https://arxiv.org/abs/2609.26333) (v1 read).
-- **Code:** [IST-DASLab/disaggregated-quantization](https://github.com/IST-DASLab/disaggregated-quantization) (commit `4a99d6e`, no license file) and [IST-DASLab/disaggregated-llama.cpp](https://github.com/IST-DASLab/disaggregated-llama.cpp).
-- **Model:** [ISTA-DASLab/Qwen3.8-27B-NVFP4-prefiller](https://huggingface.co/ISTA-DASLab/Qwen3.8-27B-NVFP4-prefiller) (Apache-2.0).
-
-**Key prior work, and why it matters here:**
-
-- Polino, Pascanu, Alistarh (2018), [Model compression via distillation and quantization](https://arxiv.org/abs/1802.05668): the QAD recipe QADD extends.
-- Egiazarian et al., [Bridging the gap between promise and performance for microscaling FP4 quantization](https://arxiv.org/abs/2509.23202): makes NVFP4 accurate enough to be a serious prefill format.
-- Egiazarian et al. (2024), [Extreme compression of LLMs via additive quantization (AQLM)](https://arxiv.org/abs/2401.06118): the case for 2–3-bit weight-only decoders.
-- Qin et al., [Mooncake: a KVCache-centric disaggregated architecture](https://arxiv.org/abs/2407.00079): the serving-side split that DQ mirrors in the format.
-- Sheng et al. (2023), [FlexGen](https://arxiv.org/abs/2303.06865): weight offloading amortized over batch; ODP amortizes over prompt length instead.
-- Chen et al., [Progressive mixed-precision decoding](https://arxiv.org/abs/2410.13461), and Lu et al., [Mix-quant](https://arxiv.org/abs/2605.20315): earlier phase-specific precision (§4).
-
-**Follow-ups (found by us):** none as of 2026-09-30.
+</article>

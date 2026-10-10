@@ -1,4 +1,4 @@
-# RD_ENGINE 2.0  (scaffold_site.py upgrades sites whose copy is older)
+# RD_ENGINE 2.1  (scaffold_site.py upgrades sites whose copy is older)
 """Research Daily build hook.
 
 One source of truth: the YAML front matter of docs/papers/<folder>/index.md.
@@ -471,6 +471,9 @@ def on_page_markdown(markdown: str, page, config, files):
     meta = page.meta or {}
     docs_dir = Path(config["docs_dir"])
 
+    if meta.get("example_only"):
+        log.warning("research_daily: %s is the skill's reference example, copied into the site by mistake. "
+                    "Delete this folder; it must not be built or published.", page.file.src_uri)
     if meta.get("arxiv_id") and page.file.src_uri.startswith("papers/"):
         _validate(meta, page.file.src_uri)
         if not _ART.search(markdown):

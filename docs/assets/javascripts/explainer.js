@@ -1,4 +1,4 @@
-/* Research Daily explainer engine + drawing kit.            RD_ENGINE 2.0
+/* Research Daily explainer engine + drawing kit.            RD_ENGINE 2.1
  *
  * Turns the <article class="rd-page"> blocks of a paper page into a click-through
  * lesson that fits ONE screen: the question and its drawing on the left, the
@@ -32,7 +32,7 @@
  */
 (function () {
   "use strict";
-  const ENGINE = "2.0";
+  const ENGINE = "2.1";
   const RD = (window.RD = window.RD || {});
   RD.drawings = RD.drawings || {};
   RD.engine = ENGINE;
