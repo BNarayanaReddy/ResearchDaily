@@ -1,3 +1,4 @@
+# RD_ENGINE 2.0  (scaffold_site.py upgrades sites whose copy is older)
 """Research Daily build hook.
 
 One source of truth: the YAML front matter of docs/papers/<folder>/index.md.
@@ -478,6 +479,9 @@ def on_page_markdown(markdown: str, page, config, files):
             return markdown
         folder = docs_dir / Path(page.file.src_uri).parent
         _check_lesson(markdown, page.file.src_uri, folder)
+        # Crumbs, captions and takeaways are raw <p> blocks. Without markdown="span"
+        # their inline math is never wrapped for MathJax and shows as raw TeX.
+        markdown = re.sub(r'<p class="(rd-(?:cap|crumb|take)\b[^"]*)"(?![^>]*\bmarkdown=)', r'<p class="\1" markdown="span"', markdown)
         # lessons use the full width: the explainer has its own navigation
         page.meta["hide"] = sorted(set(page.meta.get("hide") or []) | {"navigation", "toc"})
         # load the paper's drawings (assets/*.js) automatically; they register
