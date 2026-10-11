@@ -33,6 +33,17 @@ REQUIRED = [
     "title", "paper_title", "authors", "year", "arxiv_id", "paper_type",
     "hook", "big_idea", "difficulty", "date_added", "tags",
 ]
+# Entries with no paper (e.g. an open model released with code, a model card
+# and a blog post) set `source: model-release`, a `source_id` instead of
+# `arxiv_id`, and a `sources:` list of {label, url, note}.
+NO_PAPER = "model-release"
+
+
+def _key(meta: dict) -> str:
+    """The entry's id: its arXiv id, or source_id for an entry with no paper."""
+    if meta.get("source") == NO_PAPER:
+        return str(meta.get("source_id") or "")
+    return str(meta.get("arxiv_id") or "")
 
 PAPER_TYPES = {
     "method": "New method or architecture",
@@ -43,6 +54,7 @@ PAPER_TYPES = {
     "survey": "Survey",
     "position": "Position paper",
     "system": "System or infrastructure",
+    "model-release": "Model release (no paper)",
 }
 
 DIFFICULTY = {
@@ -134,7 +146,10 @@ def _dots(level: int) -> str:
 
 
 def _validate(meta: dict, where: str) -> None:
-    missing = [k for k in REQUIRED if meta.get(k) in (None, "", [])]
+    required = REQUIRED
+    if meta.get("source") == NO_PAPER:
+        required = [k for k in REQUIRED if k != "arxiv_id"] + ["source_id", "sources"]
+    missing = [k for k in required if meta.get(k) in (None, "", [])]
     if missing:
         log.warning("research_daily: %s is missing front matter: %s", where, ", ".join(missing))
     if meta.get("paper_type") and meta["paper_type"] not in PAPER_TYPES:
@@ -157,7 +172,7 @@ def _papers(docs_dir: Path) -> list[dict]:
     papers = []
     for index in sorted((docs_dir / "papers").glob("*/index.md")):
         meta = _read_front_matter(index)
-        if not meta.get("arxiv_id") or meta.get("draft"):
+        if not _key(meta) or meta.get("draft"):
             continue
         meta = dict(meta)
         meta["_folder"] = index.parent.name
@@ -166,7 +181,7 @@ def _papers(docs_dir: Path) -> list[dict]:
         st = _lesson_stats(index.read_text(encoding="utf-8"))
         meta["_pages"], meta["_fast_minutes"] = st["pages"], st["fast_minutes"]
         papers.append(meta)
-    papers.sort(key=lambda m: (_date(m.get("date_added")), str(m.get("arxiv_id"))), reverse=True)
+    papers.sort(key=lambda m: (_date(m.get("date_added")), _key(m)), reverse=True)
     return papers
 
 
@@ -316,8 +331,9 @@ def _check_lesson(markdown: str, where: str, folder: Path) -> None:
 
 
 def _cover(meta: dict, stats: dict) -> str:
-    arxiv_id = _e(meta["arxiv_id"])
+    arxiv_id = _e(_key(meta))
     version = _e(meta.get("arxiv_version", ""))
+    no_paper = meta.get("source") == NO_PAPER
     code_url, code_license, code_note = _link_block(meta.get("code"))
     model_url, model_license, model_note = _link_block(meta.get("model"))
     level = int(meta.get("difficulty", 1) or 1)
@@ -330,9 +346,16 @@ def _cover(meta: dict, stats: dict) -> str:
     facts = [
         ("Authors", _e(_authors(meta))),
         ("Published", f"{_e(meta.get('year', ''))}, {_e(meta.get('venue') or 'arXiv preprint')}"),
-        ("arXiv", f'<a href="https://arxiv.org/abs/{arxiv_id}">{arxiv_id}</a>'
-                  + (f" <span class='rd-muted'>(lesson written from {version})</span>" if version else "")),
     ]
+    if no_paper:
+        facts.append(("Paper", "None: this lesson is written from the vendor's own sources below, "
+                               "not from a reviewed paper"))
+        for src in meta.get("sources") or []:
+            if isinstance(src, dict) and src.get("url"):
+                facts.append((_e(src.get("label", "Source")), resource(src["url"], "", src.get("note", ""))))
+    else:
+        facts.append(("arXiv", f'<a href="https://arxiv.org/abs/{arxiv_id}">{arxiv_id}</a>'
+                      + (f" <span class='rd-muted'>(lesson written from {version})</span>" if version else "")))
     if code_url:
         facts.append(("Code", resource(code_url, code_license, code_note)))
     if model_url:
@@ -366,7 +389,7 @@ def _tile(meta: dict, page_url: str) -> str:
     href = get_relative_url(meta["_url"], page_url)
     tags = "".join(f"<span class='rd-tag'>{_e(t)}</span>" for t in (meta.get("tags") or [])[:4])
     level = int(meta.get("difficulty", 1) or 1)
-    return f"""<a class="rd-tile" href="{_e(href)}" data-arxiv="{_e(meta['arxiv_id'])}">
+    return f"""<a class="rd-tile" href="{_e(href)}" data-arxiv="{_e(_key(meta))}">
 <span class="rd-tile__added">Added {_pretty_date(meta.get('date_added'))}</span>
 <span class="rd-tile__title">{_e(meta['title'])}</span>
 <span class="rd-tile__full">{_e(meta.get('paper_title', ''))}</span>
@@ -406,7 +429,7 @@ def _catalog(papers: list[dict], page_src: str) -> str:
         full = str(m.get("paper_title", "")).replace("|", "\\|")
         level = int(m.get("difficulty", 1) or 1)
         lines.append(
-            f"| [**{title}**]({href}) <br><small>{full} (arXiv {m['arxiv_id']})</small> "
+            f"| [**{title}**]({href}) <br><small>{full} ({'no paper: model release' if m.get('source') == NO_PAPER else 'arXiv ' + str(m['arxiv_id'])})</small> "
             f"| {PAPER_TYPES.get(m.get('paper_type'), m.get('paper_type', ''))} "
             f"| {level}/5 {DIFFICULTY.get(level, '')} "
             f"| {', '.join(m.get('tags') or [])} "
@@ -460,7 +483,7 @@ def on_nav(nav, config, files):
             meta = _read_front_matter(docs_dir / index.file.src_uri)
             if meta.get("title"):
                 child.title = str(meta["title"])
-            paper_sections.append((_date(meta.get("date_added")), str(meta.get("arxiv_id", "")), child))
+            paper_sections.append((_date(meta.get("date_added")), _key(meta), child))
         if paper_sections:
             paper_sections.sort(key=lambda t: (t[0], t[1]), reverse=True)
             item.children = others + [c for _, _, c in paper_sections]
@@ -474,7 +497,7 @@ def on_page_markdown(markdown: str, page, config, files):
     if meta.get("example_only"):
         log.warning("research_daily: %s is the skill's reference example, copied into the site by mistake. "
                     "Delete this folder; it must not be built or published.", page.file.src_uri)
-    if meta.get("arxiv_id") and page.file.src_uri.startswith("papers/"):
+    if _key(meta) and page.file.src_uri.startswith("papers/"):
         _validate(meta, page.file.src_uri)
         if not _ART.search(markdown):
             # Legacy long-page lesson (written before the explainer format).
