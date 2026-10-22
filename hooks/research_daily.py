@@ -78,7 +78,7 @@ BUDGET = {
     "sentence_words": 28,  # any single sentence
     "page_words": 280,     # crumb + steps + takeaway on one page
     "steps": (2, 7),       # steps per (non-quiz) page
-    "pages": (8, 26),      # pages per lesson, cover excluded
+    "pages": (8, 40),      # pages per lesson, cover excluded (raised from 26 on 2026-10-22 for deeper lessons)
     "fast": (3, 8),        # quick-tour pages
 }
 MIN_PER_PAGE = 1.2
